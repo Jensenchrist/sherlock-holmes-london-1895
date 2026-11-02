@@ -65,5 +65,27 @@ window.Som = (() => {
     if (faixaAtual) faixaAtual.volume = mudo ? 0 : 0.55;
     return mudo;
   }
-  return { iniciar, bigBen, musica, alternarMudo, get mudo() { return mudo; } };
+  /* máquina de escrever: estalo curto da tecla (ruído filtrado) e o sininho do fim de linha */
+  let ruido = null, ultimaTecla = 0;
+  function tecla(fraco) {
+    if (!ctx || mudo) return;
+    const agora = ctx.currentTime; if (agora - ultimaTecla < 0.035) return; ultimaTecla = agora;
+    if (!ruido) { ruido = ctx.createBuffer(1, ctx.sampleRate * 0.05, ctx.sampleRate); const d = ruido.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 6); }
+    const src = ctx.createBufferSource(); src.buffer = ruido; src.playbackRate.value = 0.8 + Math.random() * 0.5;
+    const f = ctx.createBiquadFilter(); f.type = "bandpass"; f.frequency.value = 1800 + Math.random() * 1400; f.Q.value = 1.2;
+    const g = ctx.createGain(); g.gain.value = fraco ? 0.18 : 0.45;
+    src.connect(f).connect(g).connect(saida); src.start(agora);
+    // batida grave do tipo no papel
+    const o = ctx.createOscillator(), og = ctx.createGain(); o.frequency.value = 140 + Math.random() * 40;
+    og.gain.setValueAtTime(fraco ? 0.05 : 0.12, agora); og.gain.exponentialRampToValueAtTime(0.0001, agora + 0.04);
+    o.connect(og).connect(saida); o.start(agora); o.stop(agora + 0.05);
+  }
+  function campainha() {
+    if (!ctx || mudo) return;
+    const t = ctx.currentTime;
+    [2637, 3520].forEach((fq, i) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.value = fq;
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(i ? 0.03 : 0.08, t + 0.005); g.gain.exponentialRampToValueAtTime(0.0001, t + 1.2);
+      o.connect(g).connect(saida); o.start(t); o.stop(t + 1.3); });
+  }
+  return { iniciar, bigBen, musica, alternarMudo, tecla, campainha, get mudo() { return mudo; } };
 })();

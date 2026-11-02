@@ -22,7 +22,7 @@
   function suave(a, b, x) { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); }
   /* Tudo é posicionado em coordenadas de tela (sem escalar uma camada gigante),
      para não estourar a memória do iPhone ao dar zoom. */
-  const geral = $("mapa-geral"), svgRota = $("mapa-rota");
+  const geral = $("mapa-geral"), svgRota = $("mapa-rota"), revela = $("rota-revela"), sombra = $("rota-sombra");
   function aplicar() {
     limites();
     // vista geral: tamanho real em CSS (sem transform), para o iPhone não criar uma camada gigante ao ampliar
@@ -39,7 +39,8 @@
     marcadores.forEach(p => p.el.style.transform = `translate(${Math.round(tx + p.x * s)}px,${Math.round(ty + p.y * s)}px)`);
     if (viajando) {
       svgRota.setAttribute("viewBox", `${-tx / s} ${-ty / s} ${vp.clientWidth / s} ${vp.clientHeight / s}`);
-      rota.style.strokeWidth = 7 / s;
+      rota.style.strokeWidth = 6 / s; rota.style.strokeDasharray = rota.getAttribute("class") === "pe" ? `${1 / s} ${13 / s}` : `${18 / s} ${11 / s}`;
+      revela.style.strokeWidth = 30 / s;
     }
     if (op > 0) atualizarTiles();
   }
@@ -183,9 +184,10 @@
   async function viajar(origem, destino, op) {
     viajando = true; dica.style.opacity = 0;
     const pts = Jogo.trajeto(origem, destino, op.modo);
-    rota.setAttribute("d", "M" + pts.map(p => p.map(Math.round).join(" ")).join(" L"));
+    const dPath = "M" + pts.map(p => p.map(Math.round).join(" ")).join(" L");
+    rota.setAttribute("d", dPath); revela.setAttribute("d", dPath); sombra.setAttribute("d", "");
     rota.setAttribute("class", op.modo); $("mapa-rota").classList.add("ativa"); viajando = true; aplicar();
-    const total = rota.getTotalLength(); rota.style.strokeDasharray = total; rota.style.strokeDashoffset = total;
+    const total = rota.getTotalLength(); revela.style.strokeDasharray = total; revela.style.strokeDashoffset = total;
     sherlock.el.querySelector(".sherlock-icone").textContent = op.icone;
     // enquadra o trajeto inteiro
     const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]), vw = vp.clientWidth, vh = vp.clientHeight;
@@ -197,14 +199,14 @@
     await new Promise(ok => (function passo(t) {
       const p = Math.min(1, (t - t0) / dur), e = p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
       const pt = rota.getPointAtLength(total * e);
-      rota.style.strokeDashoffset = total * (1 - e);
+      revela.style.strokeDashoffset = total * (1 - e);
       sherlock.x = pt.x; sherlock.y = pt.y; aplicar();
       if (p < 1) requestAnimationFrame(passo); else ok();
     })(t0));
     Jogo.viajar(caso, destino, op); atualizarHud();
     await voarPara(destino.x, destino.y, ZOOM_LOCAL, 650);
     sherlock.el.querySelector(".sherlock-icone").textContent = "🎩";
-    rota.setAttribute("d", ""); $("mapa-rota").classList.remove("ativa"); viajando = false;
+    rota.setAttribute("d", ""); revela.setAttribute("d", ""); $("mapa-rota").classList.remove("ativa"); viajando = false;
     abrirLocal(destino);
   }
 
@@ -213,7 +215,7 @@
     $("cartao-bairro").textContent = local.bairro.toUpperCase();
     $("cartao-nome").textContent = local.nome.toUpperCase();
     const foto = $("cartao-foto"); foto.src = local.foto; foto.alt = local.nome;
-    $("cartao-texto").textContent = texto;
+    App.datilografar($("cartao-texto"), texto, 14);
     $("cartao-desafio").innerHTML = desafioHtml || "";
     cartao.classList.add("aberto"); cartao.scrollTop = 0;
   }
@@ -245,6 +247,7 @@
       if (Jogo.confereDesafio(d, r)) {
         prog.resolvidos.push(local.id); Jogo.salvar();
         desenharDesafio(local); box.querySelector(".pista-anotada").classList.add("nova");
+        App.datilografar(box.querySelector(".pista-anotada p"), local.pista.texto, 18); Som.campainha();
       } else {
         Jogo.gastar(10); atualizarHud();
         const m = $("desafio-msg"); m.textContent = "Não é isso. Holmes reflete mais um pouco (10 min)."; box.classList.remove("errou"); void box.offsetWidth; box.classList.add("errou");
@@ -311,22 +314,49 @@
     desenharCaderno(lista.find(c => c.id === sel.value));
     caderno.classList.add("aberto");
   }
+  const ROMANOS = ["I", "II", "III", "IV", "V", "VI"];
+  const PEQUENAS = ["de", "da", "do", "das", "dos", "que", "às", "a", "o", "e", "em", "no", "na"];
+  const titulo = t => t.toLowerCase().split(" ").map((w, i) => i && PEQUENAS.includes(w) ? w : w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
   function desenharCaderno(c) {
-    const p = Jogo.caso(c), corpo = $("caderno-corpo"), ativo = c === caso;
+    const p = Jogo.caso(c), corpo = $("caderno-corpo");
     const prazo = Jogo.hora(p.inicio + c.prazoHoras * 60);
     const valor = Math.round(c.recompensa * p.cliente / 100);
-    corpo.innerHTML = `<div class="cad-cab"><span>${p.resolvido ? "RESOLVIDO" : "Recompensa £ " + valor}</span><span>Prazo: ${prazo}</span><span>Agora: ${Jogo.hora()}</span></div>`;
-    c.perguntas.forEach(q => {
-      const sec = document.createElement("section"); sec.className = "cad-pergunta";
+    const total = c.locais.length, achadas = p.resolvidos.length;
+    corpo.innerHTML = `<article class="livro">
+      <header class="lv-cab">
+        <div class="lv-selo"><small>ARQUIVO</small><span>CASO</span><b></b><small>BAKER ST.</small></div>
+        <div class="lv-titulos"><div class="lv-sobre">✦ Os Casos de Sherlock Holmes ✦<small>LONDRES · MDCCCXCV</small></div><h2></h2></div>
+      </header>
+      <div class="lv-orn"><span>❦</span></div>
+      <dl class="lv-ficha">
+        <div><dt>Local</dt><dd class="d-local"></dd></div>
+        <div><dt>${p.resolvido ? "Situação" : "Recompensa"}</dt><dd>${p.resolvido ? "Resolvido" : "£ " + valor}</dd></div>
+        <div><dt>Prazo</dt><dd>${prazo}</dd></div>
+        <div><dt>Pistas</dt><dd>${achadas} de ${total}</dd></div>
+      </dl>
+      <div class="lv-perguntas"></div>
+      <footer class="lv-pe">
+        <div class="lv-carimbo ${p.resolvido ? "ok" : ""}"><span>221B BAKER STREET</span><b>${p.resolvido ? "RESOLVIDO" : "EM<br>INVESTIGAÇÃO"}</b><span>S. HOLMES</span></div>
+        <div class="lv-rodape">✦ ARQUIVO DE BAKER STREET ✦</div>
+      </footer>
+    </article>`;
+    corpo.querySelector(".lv-selo b").textContent = c.id;
+    corpo.querySelector("h2").textContent = titulo(c.titulo);
+    corpo.querySelector(".d-local").textContent = c.endereco;
+    const box = corpo.querySelector(".lv-perguntas");
+    c.perguntas.forEach((q, k) => {
+      const sec = document.createElement("section"); sec.className = "lv-perg";
       const pistas = c.locais.filter(l => p.resolvidos.includes(l.id) && l.pista.pergunta === q.id);
-      sec.innerHTML = `<h3></h3><ul></ul><label>Sua conclusão</label><textarea rows="2" placeholder="escreva aqui o que você deduziu"></textarea>`;
-      sec.querySelector("h3").textContent = q.titulo;
+      sec.innerHTML = `<h3><span>${ROMANOS[k]}.</span> <em></em></h3><ul class="lv-pistas"></ul>
+        <div class="lv-nota"><i class="lv-clipe"></i><label>Conclusão de Holmes</label><textarea rows="3" placeholder="datilografe aqui sua dedução..."></textarea></div>`;
+      sec.querySelector("em").textContent = q.titulo;
       const ul = sec.querySelector("ul");
-      if (!pistas.length) ul.innerHTML = `<li class="vazia">nenhuma pista ainda</li>`;
-      pistas.forEach(l => { const li = document.createElement("li"); li.innerHTML = "<i></i> "; li.querySelector("i").textContent = l.nome + ":"; li.append(l.pista.texto); ul.appendChild(li); });
+      if (!pistas.length) ul.innerHTML = `<li class="vazia">Nenhuma pista anotada ainda.</li>`;
+      pistas.forEach(l => { const li = document.createElement("li"); li.innerHTML = "<b></b> "; li.querySelector("b").textContent = l.nome + ". "; li.append(l.pista.texto); ul.appendChild(li); });
       const ta = sec.querySelector("textarea"); ta.value = p.conclusoes[q.id] || ""; ta.readOnly = p.resolvido;
       ta.oninput = () => { p.conclusoes[q.id] = ta.value; Jogo.salvar(); };
-      corpo.appendChild(sec);
+      box.appendChild(sec);
+      if (k < c.perguntas.length - 1) { const o = document.createElement("div"); o.className = "lv-orn mini"; o.innerHTML = "<span>✦ ✦ ✦</span>"; box.appendChild(o); }
     });
   }
   function destacar(l) {

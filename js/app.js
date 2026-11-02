@@ -35,12 +35,14 @@ window.App = (() => {
   }
 
   /* efeito máquina de escrever */
-  function datilografar(el, texto, ms = 22) {
+  function datilografar(el, texto, ms = 22, som = true) {
     if (el._timer) clearTimeout(el._timer);
     el.textContent = ""; el.classList.add("digitando");
     let i = 0;
     (function passo() {
       el.textContent = texto.slice(0, i++);
+      const ch = texto[i - 2];
+      if (som && ch && ch !== " " && i % 2 === 0) Som.tecla(true);
       if (i <= texto.length) el._timer = setTimeout(passo, texto[i - 2] === "." ? ms * 8 : ms);
       else el.classList.remove("digitando");
     })();
@@ -62,6 +64,12 @@ window.App = (() => {
     document.getElementById("aviso-ok").onclick = () => document.getElementById("aviso").classList.remove("aberto");
     document.querySelector('[data-acao="manual"]').onclick = () => aviso("MANUAL\n\nEscolha um caso na gaveta e leia a ficha.\n\nNo mapa, aproxime com dois dedos: os locais do caso aparecem como bolinhas vermelhas.\n\nToque num local para viajar: a pé (grátis e lento), de carruagem (rápida, custa libras) ou de barco pelo Tâmisa.\n\nEm cada local há um desafio. Resolva e a pista vai para o caderno.\n\nNo 221B, releia as pistas e escreva suas conclusões. Na Scotland Yard, apresente-as a Lestrade. Errar custa reputação e diminui a recompensa");
     document.querySelector('[data-acao="info"]').onclick = () => aviso("SHERLOCK HOLMES — LONDRES 1895\n\nVersão 0.1 (protótipo)\nCriado por Jeferson Justen Christ.");
+    // som de máquina de escrever ao digitar nos campos do jogo
+    document.addEventListener("input", e => {
+      if (!e.target.matches("input, textarea")) return;
+      if (e.inputType === "insertLineBreak" || e.inputType === "insertParagraph") Som.campainha(); else Som.tecla();
+    });
+    document.addEventListener("keydown", e => { if (e.key === "Enter" && e.target.matches("input")) Som.campainha(); });
     document.getElementById("btn-iniciar").onclick = () => { Som.iniciar(); ir("abertura"); };
   }
 

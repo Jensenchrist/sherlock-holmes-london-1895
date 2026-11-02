@@ -11,7 +11,7 @@
 <title>Sherlock Holmes — Londres 1895</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="assets/img/icone-180.png">
-<link rel="stylesheet" href="css/estilo.css?v=7">
+<link rel="stylesheet" href="css/estilo.css?v=8">
 </head>
 <body>
 
@@ -84,7 +84,7 @@
     <div id="mapa-mundo">
       <img id="mapa-geral" src="assets/img/mapa_geral.jpg" alt="Mapa de Londres em 1895" draggable="false">
       <div id="mapa-tiles"></div>
-      <svg id="mapa-rota" viewBox="0 0 6620 3726"><path id="rota-linha" d=""/></svg>
+      <svg id="mapa-rota" viewBox="0 0 6620 3726"><defs><mask id="rota-mascara" maskUnits="userSpaceOnUse" x="-10000" y="-10000" width="30000" height="30000"><path id="rota-revela" d="" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round"/></mask></defs><path id="rota-sombra" d=""/><path id="rota-linha" d="" mask="url(#rota-mascara)"/></svg>
       <div id="mapa-pontos"></div>
       <div id="mapa-fixos"></div>
     </div>
@@ -137,13 +137,13 @@
 <!-- Avisos (manual/info) -->
 <div class="aviso" id="aviso"><div class="aviso-papel"><div id="aviso-texto"></div><button id="aviso-ok">ok</button></div></div>
 
-<script src="data/casos.js?v=7"></script>
-<script src="data/casos_cap1.js?v=7"></script>
-<script src="js/audio.js?v=7"></script>
-<script src="js/jogo.js?v=7"></script>
-<script src="js/app.js?v=7"></script>
-<script src="js/abertura.js?v=7"></script>
-<script src="js/casos.js?v=7"></script>
-<script src="js/mapa.js?v=7"></script>
+<script src="data/casos.js?v=8"></script>
+<script src="data/casos_cap1.js?v=8"></script>
+<script src="js/audio.js?v=8"></script>
+<script src="js/jogo.js?v=8"></script>
+<script src="js/app.js?v=8"></script>
+<script src="js/abertura.js?v=8"></script>
+<script src="js/casos.js?v=8"></script>
+<script src="js/mapa.js?v=8"></script>
 </body>
 </html>
