@@ -6,7 +6,7 @@ html,body{margin:0;height:100%;background:var(--noite);color:#f1e3c4;overflow:hi
 button{font-family:inherit;cursor:pointer}
 
 /* ---------- telas ---------- */
-.tela{position:fixed;left:0;top:0;width:100vw;height:var(--altura,100lvh);opacity:0;visibility:hidden;transition:opacity .7s ease,visibility 0s linear .7s;background:var(--noite);overflow:hidden}
+.tela{position:fixed;left:0;top:0;width:100vw;height:max(100vh,var(--altura,100lvh));opacity:0;visibility:hidden;transition:opacity .7s ease,visibility 0s linear .7s;background:var(--noite);overflow:hidden}
 .tela.ativa{opacity:1;visibility:visible;transition:opacity .7s ease,visibility 0s}
 
 /* palco = arte em tamanho "cover", com tudo posicionado em % por cima */
@@ -117,7 +117,9 @@ button{font-family:inherit;cursor:pointer}
 
 /* ---------- investigação: rota, marcadores fixos, Holmes ---------- */
 #mapa-rota{position:absolute;left:0;top:0;pointer-events:none;overflow:visible}
-#rota-linha{fill:none;stroke:#7d1914;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 6px rgba(255,240,210,.9))}
+#mapa-rota{display:none}
+#mapa-rota.ativa{display:block}
+#rota-linha{fill:none;stroke:#7d1914;stroke-linecap:round;stroke-linejoin:round}
 #rota-linha.barco{stroke:#1f4f7a}
 #rota-linha.pe{stroke:#4a3420}
 #mapa-fixos{position:absolute;inset:0;pointer-events:none}

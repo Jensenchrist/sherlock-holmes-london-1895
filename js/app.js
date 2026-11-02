@@ -10,7 +10,10 @@ window.App = (() => {
     // fica cortada em cima com uma faixa preta embaixo. Usa a altura real da tela nesses casos.
     const app = navigator.standalone || matchMedia("(display-mode: standalone)").matches;
     const vw = window.innerWidth;
-    const vh = app ? Math.max(window.innerHeight, screen.height * (vw / screen.width)) : window.innerHeight;
+    const telaCheia = screen.height * (vw / screen.width);
+    let vh = Math.max(window.innerHeight, document.documentElement.clientHeight);
+    // no app instalado (tela inicial), o iPhone às vezes informa a altura sem a barra de status: usa a tela inteira
+    if (app) vh = Math.max(vh, telaCheia);
     document.documentElement.style.setProperty("--altura", vh + "px");
     document.querySelectorAll(".tela").forEach(t => {
       const p = t.querySelector(".palco"); if (!p) return;
@@ -50,6 +53,9 @@ window.App = (() => {
     document.querySelectorAll(".tela").forEach(t => telas[t.id] = t);
     ajustarPalcos();
     window.addEventListener("resize", ajustarPalcos);
+    window.addEventListener("orientationchange", () => setTimeout(ajustarPalcos, 300));
+    window.addEventListener("pageshow", () => setTimeout(ajustarPalcos, 100));
+    setTimeout(ajustarPalcos, 400);
     document.addEventListener("click", e => {
       const b = e.target.closest("[data-ir]"); if (b) ir(b.dataset.ir);
       const s = e.target.closest(".som"); if (s) { const m = Som.alternarMudo(); document.querySelectorAll(".som").forEach(x => x.classList.toggle("mudo", m)); }

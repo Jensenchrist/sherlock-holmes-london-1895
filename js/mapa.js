@@ -168,7 +168,7 @@
     viajando = true; dica.style.opacity = 0;
     const pts = Jogo.trajeto(origem, destino, op.modo);
     rota.setAttribute("d", "M" + pts.map(p => p.map(Math.round).join(" ")).join(" L"));
-    rota.setAttribute("class", op.modo);
+    rota.setAttribute("class", op.modo); $("mapa-rota").classList.add("ativa");
     const total = rota.getTotalLength(); rota.style.strokeDasharray = total; rota.style.strokeDashoffset = total;
     sherlock.el.querySelector(".sherlock-icone").textContent = op.icone;
     // enquadra o trajeto inteiro
@@ -188,7 +188,7 @@
     Jogo.viajar(caso, destino, op); atualizarHud();
     await voarPara(destino.x, destino.y, ZOOM_LOCAL, 650);
     sherlock.el.querySelector(".sherlock-icone").textContent = "🎩";
-    rota.setAttribute("d", ""); viajando = false;
+    rota.setAttribute("d", ""); $("mapa-rota").classList.remove("ativa"); viajando = false;
     abrirLocal(destino);
   }
 
