@@ -82,7 +82,7 @@ button{font-family:inherit;cursor:pointer}
 .area-caso{position:absolute;width:900px;height:900px;margin:-450px 0 0 -450px;border-radius:50%;border:36px solid rgba(217,72,58,.95);box-shadow:0 0 80px 20px rgba(217,72,58,.45);
   background:radial-gradient(circle,rgba(217,72,58,.38),rgba(217,72,58,.08) 70%);animation:area 2.4s ease-in-out infinite}
 @keyframes area{0%,100%{transform:scale(.9);opacity:.6}50%{transform:scale(1.05);opacity:1}}
-#mapa-pontos{position:absolute;inset:0;z-index:3;pointer-events:none;transition:opacity .35s}
+#mapa-pontos{position:absolute;inset:0;z-index:4;pointer-events:none;transition:opacity .35s}
 .ponto{position:absolute;width:0;height:0;pointer-events:auto}
 .ponto button{position:absolute;left:0;top:0;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;border:3px solid #fff3d6;
   background:radial-gradient(circle at 35% 30%,#d9483a,#7d1914);box-shadow:0 0 0 0 rgba(217,72,58,.6),0 3px 8px rgba(0,0,0,.6);
@@ -116,14 +116,14 @@ button{font-family:inherit;cursor:pointer}
 .aviso-papel button{margin-top:14px;background:#3e281a;color:#ecdcb4;border:1px solid #aa8246;border-radius:6px;padding:9px 18px;font-size:15px}
 
 /* ---------- investigação: rota, marcadores fixos, Holmes ---------- */
-#mapa-rota{position:absolute;z-index:2;left:0;top:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+#mapa-rota{position:absolute;z-index:3;left:0;top:0;width:100%;height:100%;pointer-events:none;overflow:visible}
 #mapa-rota{display:none}
 #mapa-rota.ativa{display:block}
 #rota-linha{fill:none;stroke:#3a2212;stroke-linecap:round;stroke-linejoin:round}
 #rota-sombra{display:none}
 #rota-linha.barco{stroke:#1d3a57}
 #rota-linha.pe{stroke:#3a2212}
-#mapa-fixos{position:absolute;inset:0;z-index:4;pointer-events:none}
+#mapa-fixos{position:absolute;inset:0;z-index:5;pointer-events:none}
 .ponto.feito button{background:radial-gradient(circle at 35% 30%,#c9a25c,#6b4e22);animation:none}
 .ponto.fixo button{width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:50%;border:3px solid #f1e3c4;font-size:15px;letter-spacing:.02em;
   background:radial-gradient(circle at 35% 30%,#5a3c22,#2a1a0e);color:#f3dfb0;animation:none;box-shadow:0 3px 10px rgba(0,0,0,.7)}
@@ -254,3 +254,9 @@ button{font-family:inherit;cursor:pointer}
 .lv-carimbo.ok{color:#2f5a2a;border-color:#2f5a2a}
 .lv-rodape{width:100%;text-align:center;font-family:"FellSC",serif;font-size:12px;letter-spacing:.18em;color:#5a3f22;border:1px solid #8a6a40;padding:6px;outline:1px solid #8a6a40;outline-offset:2px}
 @media (min-width:700px){ .livro{padding:26px 34px} .lv-cab h2{font-size:38px} }
+
+/* ---------- dia e noite ---------- */
+#mapa-noite{position:absolute;inset:0;z-index:2;pointer-events:none;opacity:0;mix-blend-mode:multiply;
+  background:radial-gradient(ellipse 120% 90% at 50% 45%,#3a4a7a,#141a38 70%,#080b1c)}
+#mapa-luz{position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none}
+#hud-hora{cursor:pointer}

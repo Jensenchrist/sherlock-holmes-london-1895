@@ -42,6 +42,7 @@
       rota.style.strokeWidth = 6 / s; rota.style.strokeDasharray = rota.getAttribute("class") === "pe" ? `${1 / s} ${13 / s}` : `${18 / s} ${11 / s}`;
       revela.style.strokeWidth = 30 / s;
     }
+    Ambiente.camera(tx, ty, s, vp.clientWidth, vp.clientHeight);
     if (op > 0) atualizarTiles();
   }
   function zoomEm(px, py, novoS) {
@@ -156,7 +157,7 @@
   }
   function atualizarHud() {
     const e = Jogo.estado();
-    $("hud-libras").textContent = "£ " + e.libras; $("hud-hora").textContent = Jogo.hora(); $("hud-rep").textContent = "Reputação " + e.reputacao;
+    $("hud-libras").textContent = "£ " + e.libras; $("hud-hora").textContent = Jogo.hora(); Ambiente.relogio(e.minutos); $("hud-rep").textContent = "Reputação " + e.reputacao;
   }
 
   // ---------- painel inferior ----------
@@ -197,12 +198,13 @@
     const esc = Math.min(Math.max(Math.min(vw / bw, vh / bh), minS), 0.6);
     await voarPara((Math.max(...xs) + Math.min(...xs)) / 2, (Math.max(...ys) + Math.min(...ys)) / 2, esc, 650);
     // Holmes percorre o caminho
-    const dur = Math.min(4200, 1600 + op.km * 260), t0 = performance.now();
+    const dur = Math.min(4200, 1600 + op.km * 260), t0 = performance.now(), m0 = Jogo.estado().minutos;
     await new Promise(ok => (function passo(t) {
       const p = Math.min(1, (t - t0) / dur), e = p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
       const pt = rota.getPointAtLength(total * e);
       revela.style.strokeDashoffset = total * (1 - e);
       sherlock.x = pt.x; sherlock.y = pt.y; aplicar();
+      Ambiente.relogio(m0 + op.tempo * e); $("hud-hora").textContent = Jogo.hora(Math.round(m0 + op.tempo * e));
       if (p < 1) requestAnimationFrame(passo); else ok();
     })(t0));
     Jogo.viajar(caso, destino, op); atualizarHud();
@@ -366,6 +368,8 @@
     if (m) { m.el.classList.remove("destaque"); void m.el.offsetWidth; m.el.classList.add("destaque"); }
   }
   $("btn-caderno").onclick = () => abrirCaderno();
+  // tocar no relógio mostra uma prévia da noite (para ver os lampiões)
+  $("hud-hora").onclick = () => { Ambiente.alternarPrevia(); Ambiente.relogio(Jogo.estado().minutos); };
   $("caderno-fechar").onclick = () => caderno.classList.remove("aberto");
 
   window._mapa = { voarPara, get s() { return s; } }; // usado nos testes
@@ -381,6 +385,7 @@
       const aqui = achar(prog.pos) || Jogo.BASE;
       tx = vp.clientWidth / 2 - aqui.x * s; ty = vp.clientHeight / 2 - aqui.y * s; aplicar();
     });
+    Ambiente.ligar();
     Som.musica("partida");
   };
 })();
