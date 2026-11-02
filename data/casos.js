@@ -25,10 +25,10 @@ window.CASOS = [
     locais: [
       {
         id: "oficina", nome: "Oficina Bell", bairro: "Marylebone", x: 2050, y: 1190, foto: "assets/locais/001_oficina.jpg",
-        descricao: "A porta estava trancada por dentro e cheira a óleo de relógio. Na parede, o grande relógio parado. Holmes aproxima a lupa do mostrador e assobia baixo: há marcas frescas de alicate no ponteiro dos minutos.",
+        descricao: "A porta estava trancada por dentro e cheira a óleo de relógio. Na parede, o grande relógio parado. Holmes aproxima a lupa do mostrador e assobia baixo: há arranhões frescos no ponteiro dos minutos, como de uma lâmina fina.",
         desafio: { tipo: "OBSERVAÇÃO", enunciado: "O ponteiro das horas está exatamente sobre o 9. O dos minutos aponta para o 1. Que horas o relógio marca?",
           respostas: ["905", "9h05", "0905", "9h5", "noveecinco", "noveecincominutos"], dica: "Cada número do mostrador vale cinco minutos para o ponteiro grande." },
-        pista: { pergunta: "quem", texto: "O relógio foi adiantado à mão para 9h05, com um alicate. A trava foi fechada por fora, com arame. Quem armou a cena queria um álibi para as 9h05." }
+        pista: { pergunta: "quem", texto: "O relógio foi adiantado à mão para 9h05, com uma ferramenta fina de lâmina. A trava foi fechada por fora, com arame. Quem armou a cena queria um álibi para as 9h05." }
       },
       {
         id: "residencia", nome: "Residência dos Bell", bairro: "Kensington", x: 560, y: 2250, foto: "assets/locais/001_residencia.jpg",
@@ -41,8 +41,8 @@ window.CASOS = [
         id: "loja", nome: "Loja de Edmund Price", bairro: "Clerkenwell", x: 5500, y: 1130, foto: "assets/locais/001_loja.jpg",
         descricao: "Edmund Price, antiquário, recebe Holmes com um sorriso largo demais. Jura que passou a manhã no Café Royal desde as 8h45. Entre bibelôs e porcelanas, uma ferramenta fora de lugar chama a atenção de Holmes.",
         desafio: { tipo: "CHARADA", enunciado: "Holmes recita baixinho: \"Tenho duas pernas e nenhum pé, mordo o latão sem ter dente, e um antiquário não precisaria de mim.\" O que é?",
-          respostas: ["alicate"], dica: "É a mesma ferramenta que deixou marcas no ponteiro da oficina." },
-        pista: { pergunta: "quem", texto: "Price tem um alicate fino com limalha de latão, sem ser relojoeiro. Na lixeira, um bilhete amassado: \"Ele não paga mais. Resolver hoje.\"" }
+          respostas: ["tesoura", "alicate"], dica: "Olhe o balcão na foto: é a ferramenta largada entre os bibelôs." },
+        pista: { pergunta: "quem", texto: "Price tem uma tesoura fina de relojoeiro com limalha de latão nas lâminas, sem ser relojoeiro. Na lixeira, um bilhete amassado: \"Ele não paga mais. Resolver hoje.\"" }
       },
       {
         id: "cafe", nome: "Café Royal", bairro: "Piccadilly", x: 3000, y: 2210, foto: "assets/locais/001_cafe.jpg",
