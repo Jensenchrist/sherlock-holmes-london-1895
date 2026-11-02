@@ -4,7 +4,7 @@
   const NIVEIS = [{ esc: 1, cols: 13, lins: 8 }, { esc: 0.5, cols: 7, lins: 4 }];
   const vp = document.getElementById("mapa-viewport"), mundo = document.getElementById("mapa-mundo");
   const camadaTiles = document.getElementById("mapa-tiles"), camadaPontos = document.getElementById("mapa-pontos");
-  const dica = document.getElementById("mapa-dica"), painel = document.getElementById("painel");
+  const areaCaso = document.getElementById("mapa-area"), dica = document.getElementById("mapa-dica"), painel = document.getElementById("painel");
   let s = 0.2, tx = 0, ty = 0, minS = 0.2, maxS = 1.25;
   const tiles = new Map();
   let caso = null, pontosEls = [], btnResolver = null;
@@ -29,6 +29,7 @@
     camadaTiles.style.opacity = op;
     const mostrarPontos = op > 0.6;
     camadaPontos.style.opacity = mostrarPontos ? 1 : 0;
+    areaCaso.style.opacity = 1 - op;
     camadaPontos.style.pointerEvents = mostrarPontos ? "auto" : "none";
     dica.style.opacity = mostrarPontos ? 0 : 1;
     pontosEls.forEach(p => p.el.style.transform = `translate(${p.x}px,${p.y}px) scale(${1 / s})`);
@@ -121,7 +122,7 @@
     if (btnResolver) btnResolver.remove();
     btnResolver = document.createElement("button"); btnResolver.className = "btn-caso"; btnResolver.textContent = "RESOLVER O CASO";
     Object.assign(btnResolver.style, { position: "absolute", left: "50%", top: "auto", bottom: "calc(env(safe-area-inset-bottom) + 64px)", transform: "translateX(-50%)", width: "auto", height: "auto", padding: "12px 22px", fontSize: "17px", whiteSpace: "nowrap", zIndex: 4, display: "none" });
-    btnResolver.onclick = resolver;
+    btnResolver.onclick = () => resolver(0);
     document.getElementById("mapa").appendChild(btnResolver);
     checarResolver();
   }
@@ -145,16 +146,16 @@
     abrirPainel(loc.nome, loc.texto);
     checarResolver();
   }
-  function resolver() {
-    const sol = caso.solucao;
-    abrirPainel("RESOLVER O CASO", sol.pergunta, sol.opcoes.map(o => ({
+  /* resolução: uma ou mais perguntas em sequência; errar só pede para pensar de novo */
+  function resolver(n = 0) {
+    const sol = caso.solucao, perguntas = sol.perguntas || [sol];
+    const q = perguntas[n], titulo = perguntas.length > 1 ? `DEDUÇÃO ${n + 1} DE ${perguntas.length}` : "RESOLVER O CASO";
+    abrirPainel(titulo, q.pergunta, q.opcoes.map(o => ({
       texto: o.texto, acao: () => {
-        if (o.correta) {
-          prog[caso.id].resolvido = true; salvarProg(prog); caso.situacao = "RESOLVIDO"; checarResolver();
-          abrirPainel("CASO RESOLVIDO", o.resposta, [{ texto: "Voltar ao arquivo", acao: () => { painel.classList.remove("aberto"); App.ir("casos"); } }]);
-        } else {
-          abrirPainel("NÃO É ISSO, WATSON", o.resposta, [{ texto: "Pensar de novo", acao: resolver }]);
-        }
+        if (!o.correta) { abrirPainel("NÃO É ISSO, WATSON", o.resposta, [{ texto: "Pensar de novo", acao: () => resolver(n) }]); return; }
+        if (n + 1 < perguntas.length) { abrirPainel("CORRETO", o.resposta, [{ texto: "Próxima dedução", acao: () => resolver(n + 1) }]); return; }
+        prog[caso.id].resolvido = true; salvarProg(prog); caso.situacao = "RESOLVIDO"; checarResolver();
+        abrirPainel("CASO RESOLVIDO", o.resposta + (sol.epilogo ? "\n\n" + sol.epilogo : ""), [{ texto: "Voltar ao arquivo", acao: () => { painel.classList.remove("aberto"); App.ir("casos"); } }]);
       }
     })));
   }
@@ -170,6 +171,7 @@
       limites(); s = minS;
       const cx = caso.locais.reduce((a, l) => a + l.x, 0) / caso.locais.length;
       const cy = caso.locais.reduce((a, l) => a + l.y, 0) / caso.locais.length;
+      const a = areaCaso.firstElementChild; a.style.left = cx + "px"; a.style.top = cy + "px";
       tx = vw / 2 - cx * s; ty = vh / 2 - cy * s; aplicar();
     });
     Som.musica("partida");

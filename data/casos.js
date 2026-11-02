@@ -1,41 +1,76 @@
 /* Casos do jogo.
    Coordenadas x, y = pixels do mapa-mestre v6 (6620 x 3726), origem no canto superior esquerdo.
-   O caso 001 é PROVISÓRIO, só para testar as telas; os 11 casos oficiais entram aqui.
+   Caso 001: enredo recuperado do roteiro original, com as lacunas completadas (6º personagem Molly Hughes, as 10 evidências e o epílogo).
    Casos com "bloqueado: true" aparecem na gaveta, mas ainda não abrem. */
 window.CASOS = [
   {
     id: "001",
-    titulo: "A CARTA SEM REMETENTE",
-    endereco: "221B Baker Street",
+    titulo: "O RELÓGIO QUE PAROU ÀS NOVE",
+    endereco: "Marylebone",
     ano: 1895,
-    data: "3 mar. 1895",
-    relato: "Chegou a Baker Street uma carta sem remetente, lacrada com cera negra: \"Ela não voltou para casa.\" Holmes ergueu o papel contra a luz. \"O carimbo é de Lambeth, Watson, mas o papel é caro demais para Lambeth.\"",
-    objetivo: "Descobrir quem enviou a carta e quem desapareceu.",
+    data: "out. 1895",
+    relato: "Eleanor Bell chegou aflita a Baker Street: o irmão, Arthur, relojoeiro, sumiu da oficina, trancada por dentro. O relógio da parede parou às nove. \"Ou alguém quer que acreditemos nisso\", disse Holmes.",
+    objetivo: "Descobrir o que aconteceu com Arthur Bell e quem armou a cena da oficina.",
     situacao: "ABERTO",
     locais: [
       {
-        id: "baker", nome: "221B Baker Street", x: 1700, y: 1110,
-        texto: "Holmes examina a carta com a lupa. A cera negra traz a marca de um anel com a letra \"M\". O papel tem marca d'água de uma papelaria fina de Mayfair.\n\nPista: papel caro, cera com a letra M."
+        id: "oficina", nome: "Oficina Bell", x: 2180, y: 1180,
+        texto: "A porta estava trancada por dentro. Holmes examina o relógio de parede: \"Nove e cinco, Watson, não nove. E há marcas frescas de alicate no ponteiro.\" Na trava, arranhões finos, feitos pelo lado de fora.\n\nEvidência 1: o relógio foi adiantado à mão para as 9h05.\nEvidência 2: a trava foi fechada por fora, com um arame."
       },
       {
-        id: "mayfair", nome: "Papelaria Hartley, Mayfair", x: 2480, y: 2110,
-        texto: "O Sr. Hartley reconhece o papel. \"Vendo esse papel a uma só freguesa, a Sra. Margaret Vane. Mas há duas semanas quem veio buscá-lo foi a criada dela, uma moça de Lambeth.\"\n\nPista: a criada da Sra. Vane mora em Lambeth."
+        id: "residencia", nome: "Residência dos Bell", x: 1880, y: 1300,
+        texto: "Eleanor abre a escrivaninha do irmão. Há cartas antigas assinadas \"E.P.\" exigindo dinheiro, e um livro-caixa com pagamentos mensais ao mesmo E.P. O último lançamento diz: \"Não pago mais.\"\n\nEvidência 3: Arthur era chantageado por alguém com as iniciais E.P.\nEvidência 4: Arthur decidiu parar de pagar na véspera do sumiço."
       },
       {
-        id: "lambeth", nome: "Correio de Lambeth", x: 4430, y: 3175,
-        texto: "O funcionário lembra da carta. \"Uma moça nervosa, de touca azul. Pediu para não pôr o nome. Disse que a patroa sumiu e que ninguém na casa quis chamar a polícia.\"\n\nPista: a criada enviou a carta; a desaparecida é a patroa."
+        id: "loja", nome: "Loja de Edmund Price", x: 2500, y: 1080,
+        texto: "Edmund Price, antiquário, jura que passou a manhã no Café de Marylebone desde as 8h45. No balcão, um alicate fino de relojoeiro com limalha de latão. Na lixeira, um bilhete amassado: \"Ele não paga mais. Resolver hoje.\"\n\nEvidência 5: Price tem um alicate de relojoeiro sem ser relojoeiro.\nEvidência 6: o bilhete liga Price ao fim dos pagamentos."
+      },
+      {
+        id: "cafe", nome: "Café de Marylebone", x: 2350, y: 1360,
+        texto: "Molly Hughes, a garçonete, hesita. \"O Sr. Price chegou às nove e vinte, sem fôlego, e me pediu para dizer que estava aqui desde cedo.\" Numa mesa do fundo, Clara Whitmore confessa que estava ali desde as 8h30, vendendo em segredo as joias da família para pagar dívidas.\n\nEvidência 7: o álibi de Price é falso; ele chegou às 9h20.\nEvidência 8: Clara tem dívidas, mas estava no café a manhã toda."
+      },
+      {
+        id: "deposito", nome: "Depósito de peças", x: 2700, y: 1320,
+        texto: "Thomas Reed, o fornecedor, admite a briga com Arthur por uma engrenagem danificada, mas mostra o recibo: a peça foi trocada e paga na véspera. No fundo do depósito, pegadas com serragem da oficina levam a um lampião ainda morno.\n\nEvidência 9: a briga com Reed já estava resolvida.\nEvidência 10: alguém saiu da oficina pela passagem de serviço e se escondeu aqui."
       }
     ],
     solucao: {
-      pergunta: "Quem enviou a carta e quem desapareceu?",
-      opcoes: [
-        { texto: "A Sra. Vane enviou a carta sobre a criada.", correta: false,
-          resposta: "Não. O funcionário do correio descreveu uma moça de touca azul, não uma senhora de Mayfair." },
-        { texto: "A criada enviou a carta: a Sra. Vane desapareceu.", correta: true,
-          resposta: "Exato. A criada usou o papel da patroa e postou longe de casa, em Lambeth, para não ser reconhecida. A Sra. Margaret Vane é quem não voltou para casa." },
-        { texto: "O Sr. Hartley enviou a carta para atrair clientes.", correta: false,
-          resposta: "Não. Hartley só reconheceu o papel; nada liga ele ao correio de Lambeth." }
-      ]
+      perguntas: [
+        {
+          pergunta: "Como a oficina ficou trancada por dentro?",
+          opcoes: [
+            { texto: "Arthur se trancou e fugiu pela janela.", correta: false,
+              resposta: "As janelas da oficina não abrem, Watson. E os arranhões na trava foram feitos pelo lado de fora." },
+            { texto: "Arthur saiu pela passagem de serviço; depois alguém fechou a trava por fora com um arame.", correta: true,
+              resposta: "Exato. A porta trancada não prova que ninguém saiu: prova apenas que alguém quis que parecesse assim." },
+            { texto: "Thomas Reed tinha uma cópia da chave.", correta: false,
+              resposta: "Reed nunca teve chave, e a trava não foi aberta com chave: foi forçada com arame." }
+          ]
+        },
+        {
+          pergunta: "O que o relógio parado realmente indica?",
+          opcoes: [
+            { texto: "Arthur desapareceu às 9h05.", correta: false,
+              resposta: "É justamente o que o culpado queria que pensássemos. Um relógio adiantado à mão não é testemunha." },
+            { texto: "Alguém adiantou o relógio para criar um horário falso, que combinasse com o próprio álibi.", correta: true,
+              resposta: "Isso. As marcas de alicate mostram que o ponteiro foi movido. O horário falso servia para inocentar quem estivesse no café às 9h05." },
+            { texto: "O relógio quebrou sozinho às nove.", correta: false,
+              resposta: "Relógios quebrados não deixam marcas frescas de alicate no ponteiro." }
+          ]
+        },
+        {
+          pergunta: "Quem armou a cena da oficina?",
+          opcoes: [
+            { texto: "Thomas Reed, por causa da peça danificada.", correta: false,
+              resposta: "A briga terminou na véspera, com recibo pago. Reed não ganharia nada com um horário falso." },
+            { texto: "Clara Whitmore, por causa das dívidas.", correta: false,
+              resposta: "Clara tem dívidas e um segredo, mas Molly a viu no café desde as 8h30. Ela não poderia estar na oficina." },
+            { texto: "Edmund Price, o chantagista.", correta: true,
+              resposta: "Elementar. Price, o E.P. das cartas, foi à oficina às 8h50 cobrar o dinheiro e encontrou Arthur já fora. Adiantou o relógio para 9h05, fechou a trava com arame e correu ao café para fingir que estava lá desde cedo." }
+          ]
+        }
+      ],
+      epilogo: "Arthur Bell foi encontrado no fundo do depósito de peças, vivo e assustado. Saiu da oficina às 8h35 para escapar de Price, levando o livro-caixa com as provas da chantagem. Price foi entregue ao inspetor Lestrade. Eleanor pagou os honorários com um relógio de bolso feito pelo irmão."
     }
   },
   { id: "002", titulo: "EM BREVE", endereco: "", bloqueado: true },
