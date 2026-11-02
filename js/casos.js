@@ -8,16 +8,17 @@
 
   // cada caso só abre depois que o anterior for resolvido
   function lacrado(k) {
-    if (casos[k].bloqueado) return true;
+    const c = casos[k];
+    if (c.bloqueado || c.reescrever) return true;
     if (k === 0) return false;
-    try { const p = JSON.parse(localStorage.getItem("sh_prog") || "{}"); return !(p[casos[k - 1].id] && p[casos[k - 1].id].resolvido); }
-    catch (e) { return false; }
+    const ant = Jogo.estado().casos[casos[k - 1].id];
+    return !(ant && ant.resolvido);
   }
   function preencher() {
     const c = casos[i], tranc = lacrado(i);
     document.getElementById("fg-num").textContent = "Nº " + c.id;
     document.getElementById("fg-titulo").textContent = c.titulo;
-    document.getElementById("fg-local").textContent = tranc ? "caso lacrado" : `${c.endereco} · ${c.ano}`;
+    document.getElementById("fg-local").textContent = c.reescrever ? "em reescrita" : tranc ? "caso lacrado" : `${c.endereco} · ${c.ano}`;
     ficha.style.opacity = tranc ? 0.82 : 1;
     esq.disabled = i === 0; dir.disabled = i === casos.length - 1;
   }
@@ -30,6 +31,7 @@
   dir.onclick = () => trocar(i + 1);
   ficha.onclick = () => {
     const c = casos[i];
+    if (c.reescrever) { App.aviso(`CASO Nº ${c.id}\n\nEste caso está sendo reescrito para o novo jeito de investigar.`); return; }
     if (lacrado(i)) { App.aviso(`CASO Nº ${c.id}\n\nEste caso está lacrado.\nResolva o caso Nº ${casos[i - 1].id} para abri-lo.`); return; }
     App.estado.caso = c; App.ir("ficha", c);
   };

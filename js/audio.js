@@ -56,7 +56,7 @@ window.Som = (() => {
   }
   function fade(el, alvo, ms, fim) {
     const ini = el.volume, t0 = performance.now();
-    (function passo(t) { const p = Math.min(1, (t - t0) / ms); el.volume = ini + (alvo - ini) * p; if (p < 1) requestAnimationFrame(passo); else if (fim) fim(); })(t0);
+    (function passo(t) { const p = Math.min(1, (t - t0) / ms); el.volume = Math.min(1, Math.max(0, ini + (alvo - ini) * p)); if (p < 1) requestAnimationFrame(passo); else if (fim) fim(); })(t0);
   }
   function alternarMudo() {
     mudo = !mudo;

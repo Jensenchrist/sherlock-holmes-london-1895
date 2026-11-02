@@ -56,7 +56,7 @@ window.App = (() => {
     });
     document.querySelectorAll(".som").forEach(x => x.classList.toggle("mudo", Som.mudo));
     document.getElementById("aviso-ok").onclick = () => document.getElementById("aviso").classList.remove("aberto");
-    document.querySelector('[data-acao="manual"]').onclick = () => aviso("MANUAL\n\nNa gaveta de CASOS, escolha uma ficha e leia o relato.\nNo mapa, aproxime com dois dedos: os locais do caso aparecem como bolinhas vermelhas.\nToque nas bolinhas para investigar. Quando tiver as pistas, resolva o caso.\n\n(Manual provisório: a jogabilidade ainda está sendo definida.)");
+    document.querySelector('[data-acao="manual"]').onclick = () => aviso("MANUAL\n\nEscolha um caso na gaveta e leia a ficha.\n\nNo mapa, aproxime com dois dedos: os locais do caso aparecem como bolinhas vermelhas. O caderno lista todos eles.\n\nToque num local para viajar: a pé (grátis e lento), de carruagem (rápida, custa libras) ou de barco pelo Tâmisa.\n\nEm cada local há um desafio. Resolva e a pista vai para o caderno.\n\nNo 221B, releia as pistas e escreva suas conclusões. Na Scotland Yard, apresente-as a Lestrade. Errar custa reputação e diminui a recompensa");
     document.querySelector('[data-acao="info"]').onclick = () => aviso("SHERLOCK HOLMES — LONDRES 1895\n\nVersão 0.1 (protótipo)\nCriado por Jeferson Justen Christ.");
     document.getElementById("btn-iniciar").onclick = () => { Som.iniciar(); ir("abertura"); };
   }

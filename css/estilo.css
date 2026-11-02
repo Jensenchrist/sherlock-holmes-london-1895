@@ -114,3 +114,103 @@ button{font-family:inherit;cursor:pointer}
 .aviso.aberto{display:flex}
 .aviso-papel{background:var(--papel);color:var(--tinta);border-radius:6px;padding:20px;max-width:420px;font-size:15px;line-height:1.5;border:2px solid #967d5a;white-space:pre-wrap}
 .aviso-papel button{margin-top:14px;background:#3e281a;color:#ecdcb4;border:1px solid #aa8246;border-radius:6px;padding:9px 18px;font-size:15px}
+
+/* ---------- investigação: rota, marcadores fixos, Holmes ---------- */
+#mapa-rota{position:absolute;left:0;top:0;pointer-events:none;overflow:visible}
+#rota-linha{fill:none;stroke:#7d1914;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 6px rgba(255,240,210,.9))}
+#rota-linha.barco{stroke:#1f4f7a}
+#rota-linha.pe{stroke:#4a3420}
+#mapa-fixos{position:absolute;inset:0;pointer-events:none}
+.ponto.feito button{background:radial-gradient(circle at 35% 30%,#c9a25c,#6b4e22);animation:none}
+.ponto.fixo button{width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:50%;border:3px solid #f1e3c4;font-size:15px;letter-spacing:.02em;
+  background:radial-gradient(circle at 35% 30%,#5a3c22,#2a1a0e);color:#f3dfb0;animation:none;box-shadow:0 3px 10px rgba(0,0,0,.7)}
+.ponto.fixo.yard button{background:radial-gradient(circle at 35% 30%,#2d4a68,#13243a)}
+.ponto.fixo .rotulo{top:33px}
+.ponto.sherlock{pointer-events:none;z-index:5}
+.sherlock-icone{position:absolute;left:0;top:0;width:42px;height:42px;margin:-74px 0 0 -21px;border-radius:50%;background:#f1e3c4;border:3px solid #7d1914;
+  display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 10px rgba(0,0,0,.6)}
+.sherlock-icone::after{content:"";position:absolute;left:50%;bottom:-11px;margin-left:-7px;border:7px solid transparent;border-top-color:#7d1914;border-bottom:0}
+.ponto.destaque button{animation:destaque 1.6s ease-out 2}
+@keyframes destaque{0%{box-shadow:0 0 0 0 rgba(255,230,160,.95)}100%{box-shadow:0 0 0 46px rgba(255,230,160,0)}}
+
+/* ---------- HUD ---------- */
+.hud{position:absolute;left:0;right:0;bottom:0;padding:10px 12px calc(env(safe-area-inset-bottom) + 12px);display:flex;align-items:flex-end;gap:10px;
+  background:linear-gradient(rgba(18,13,9,0),rgba(18,13,9,.85));pointer-events:none;z-index:3}
+.hud>*{pointer-events:auto}
+.hud-dados{display:flex;flex-wrap:wrap;gap:6px;flex:1}
+.hud-dados span{background:rgba(18,13,9,.82);border:1px solid #c9a25c66;border-radius:14px;padding:5px 10px;font-size:13px;white-space:nowrap}
+.hud-caderno{flex:none;background:#3e281a;border:2px solid #aa8246;color:#ecdcb4;border-radius:10px;padding:12px 14px;font-size:15px;letter-spacing:.06em;box-shadow:0 4px 12px rgba(0,0,0,.5)}
+.mapa-dica{bottom:calc(env(safe-area-inset-bottom) + 96px)}
+.painel{z-index:7}
+.painel-opcoes button{display:flex;align-items:center;gap:10px}
+.painel-opcoes button:disabled{opacity:.45}
+.op-icone{font-size:22px;width:28px;text-align:center}
+.op-nome{flex:1}
+.op-info{font-size:13px;color:#d9c49a;white-space:nowrap}
+
+/* ---------- cartão-postal ---------- */
+.cartao{position:fixed;inset:0;z-index:15;background:rgba(10,7,4,.78);overflow:auto;display:none;padding:calc(env(safe-area-inset-top) + 16px) 12px calc(env(safe-area-inset-bottom) + 20px)}
+.cartao.aberto{display:block;animation:cartao .45s cubic-bezier(.2,.8,.2,1)}
+@keyframes cartao{from{opacity:0;transform:translateY(30px) rotate(-1deg)}to{opacity:1;transform:none}}
+.cartao-papel{max-width:520px;margin:0 auto;background:#e9dcc0 radial-gradient(ellipse at 30% 20%,rgba(255,250,235,.6),rgba(0,0,0,0) 60%);color:var(--tinta);
+  border-radius:14px;padding:12px;box-shadow:0 12px 40px rgba(0,0,0,.7),inset 0 0 60px rgba(120,85,40,.25)}
+.cartao-moldura{border:1.5px solid #8a6a3e;outline:1px solid #8a6a3e;outline-offset:-6px;border-radius:6px;padding:14px 14px 18px}
+.cartao-bairro{text-align:center;font-size:12px;letter-spacing:.32em;color:#6b5236;margin-bottom:10px}
+.cartao-bairro::before,.cartao-bairro::after{content:" ◆ ";letter-spacing:0;color:#a8865a}
+.cartao-foto{border:1px solid #8a6a3e;padding:5px;background:#dccdaa;box-shadow:inset 0 0 0 1px #f4ead2}
+.cartao-foto img{display:block;width:100%;aspect-ratio:3/2;object-fit:cover;filter:sepia(.55) contrast(1.05) brightness(.95)}
+.cartao-nome{text-align:center;font-size:13px;letter-spacing:.28em;color:#6b5236;margin:10px 0 12px;padding-bottom:10px;border-bottom:1px solid #b89c70}
+.cartao-texto{font-size:15px;line-height:1.55;white-space:pre-wrap}
+.cartao-desafio{margin-top:14px}
+.desafio-tipo{display:inline-block;font-size:12px;letter-spacing:.2em;color:#f1e3c4;background:var(--vermelho);padding:3px 8px;border-radius:3px}
+.desafio-enunciado{font-size:15px;line-height:1.5;margin:8px 0 10px}
+.desafio-linha{display:flex;gap:8px}
+.desafio-linha input{flex:1;min-width:0;font:inherit;font-size:17px;padding:10px;border:1.5px solid #8a6a3e;border-radius:6px;background:#f6eedb;color:var(--tinta);-webkit-user-select:text;user-select:text}
+.desafio-linha button,.cartao-acao{background:#3e281a;color:#ecdcb4;border:1.5px solid #aa8246;border-radius:6px;padding:10px 16px;font-size:16px}
+.cartao-acao{display:block;width:100%;margin-top:12px;letter-spacing:.06em}
+.desafio-msg{min-height:1.2em;font-size:13px;color:var(--vermelho);margin-top:6px}
+.cartao-desafio.errou .desafio-linha{animation:tremer .35s}
+@keyframes tremer{25%{transform:translateX(-6px)}50%{transform:translateX(6px)}75%{transform:translateX(-3px)}}
+.desafio-dica{background:none;border:none;color:#6b5236;text-decoration:underline;font-size:13px;padding:4px 0}
+.desafio-dica:empty{display:none}
+.desafio-dica-texto{font-size:14px;font-style:italic;color:#5a4128;margin:4px 0 0}
+.pista-anotada{border:1.5px dashed var(--vermelho);border-radius:6px;padding:10px 12px;background:rgba(125,25,20,.06)}
+.pista-anotada b{color:var(--vermelho);font-size:13px;letter-spacing:.12em}
+.pista-anotada p{margin:6px 0 0;font-size:15px;line-height:1.5}
+.pista-anotada.nova{animation:carimbo .5s cubic-bezier(.3,1.6,.5,1)}
+@keyframes carimbo{from{transform:scale(1.3);opacity:0}to{transform:none;opacity:1}}
+.cartao-fechar{display:block;margin:12px auto 0;background:none;border:none;color:#6b5236;font-size:14px;text-decoration:underline}
+.yard-item{border-bottom:1px dotted #a8865a;padding:6px 0}
+.yard-item b{font-size:13px;color:#6b5236}
+.yard-item p{margin:3px 0 0;font-size:15px;white-space:pre-wrap}
+.yard-aviso{font-size:14px;color:var(--vermelho)}
+.yard-resultado{border:2px solid;border-radius:6px;padding:12px}
+.yard-resultado.certo{border-color:#4d6b2e;background:rgba(77,107,46,.08)}
+.yard-resultado.errado{border-color:var(--vermelho);background:rgba(125,25,20,.06)}
+.yard-resultado b{letter-spacing:.12em}
+.yard-resultado p{white-space:pre-wrap;font-size:15px;line-height:1.5}
+
+/* ---------- caderno ---------- */
+.caderno{position:fixed;inset:0;z-index:16;background:rgba(10,7,4,.78);display:none;padding:calc(env(safe-area-inset-top) + 12px) 10px calc(env(safe-area-inset-bottom) + 12px)}
+.caderno.aberto{display:block;animation:cartao .4s cubic-bezier(.2,.8,.2,1)}
+.caderno-papel{height:100%;max-width:560px;margin:0 auto;display:flex;flex-direction:column;border-radius:6px 12px 12px 6px;color:var(--tinta);
+  background:#f1e8d2 repeating-linear-gradient(transparent 0 29px,#c9d3db 29px 30px);border-left:14px solid #5b2a1c;box-shadow:0 12px 40px rgba(0,0,0,.7)}
+.caderno-topo{display:flex;gap:8px;align-items:center;padding:10px 10px 8px 14px;border-bottom:2px solid #c48a7a;background:#efe4c8}
+.caderno-topo select{flex:1;min-width:0;font:inherit;font-size:14px;padding:7px;background:#f6eedb;border:1px solid #8a6a3e;border-radius:6px;color:var(--tinta)}
+.caderno-topo button{background:none;border:none;font-size:22px;color:#5b2a1c;padding:4px 8px}
+#caderno-corpo{flex:1;overflow:auto;padding:6px 14px 20px;-webkit-overflow-scrolling:touch}
+.cad-cab{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:#6b5236;padding:6px 0 4px}
+.cad-pergunta,.cad-locais{margin-top:12px}
+.cad-pergunta h3,.cad-locais h3{margin:0 0 4px;font-size:17px;color:var(--vermelho);font-weight:normal}
+.cad-pergunta ul{margin:0 0 6px;padding-left:18px;font-size:14px;line-height:1.5}
+.cad-pergunta li{margin:3px 0}
+.cad-pergunta li i{font-style:normal;color:#6b5236}
+.cad-pergunta li.vazia{list-style:none;margin-left:-18px;color:#9a876a;font-size:13px}
+.cad-pergunta label{font-size:12px;color:#6b5236;letter-spacing:.08em}
+.cad-pergunta textarea{display:block;width:100%;font:inherit;font-size:16px;line-height:1.45;padding:8px;margin-top:3px;border:1.5px solid #8a6a3e;border-radius:6px;
+  background:rgba(255,252,240,.85);color:#1d3a6b;resize:vertical;-webkit-user-select:text;user-select:text}
+.cad-local{display:grid;grid-template-columns:1fr auto;gap:0 8px;align-items:center;padding:7px 0;border-bottom:1px dotted #a8865a;font-size:14px}
+.cad-local .b{grid-column:1;font-size:12px;color:#6b5236}
+.cad-local .st{grid-column:1;font-size:12px;color:var(--vermelho)}
+.cad-local button{grid-column:2;grid-row:1/4;background:#3e281a;color:#ecdcb4;border:1px solid #aa8246;border-radius:6px;padding:7px 10px;font-size:13px}
+.cad-local.aqui .n{font-weight:bold}

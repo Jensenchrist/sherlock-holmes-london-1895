@@ -385,5 +385,7 @@
       }
     })
   ];
+  // ainda no formato antigo: aparecem na gaveta, mas ficam lacrados até serem reescritos como investigação
+  novos.forEach(n => n.reescrever = true);
   window.CASOS = window.CASOS.filter(x => !x.bloqueado).concat(novos);
 })();

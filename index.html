@@ -84,15 +84,20 @@
     <div id="mapa-mundo">
       <img id="mapa-geral" src="assets/img/mapa_geral.jpg" alt="Mapa de Londres em 1895" draggable="false">
       <div id="mapa-tiles"></div>
-      <div id="mapa-area"><div class="area-caso"></div></div>
+      <svg id="mapa-rota" viewBox="0 0 6620 3726" width="6620" height="3726"><path id="rota-linha" d=""/></svg>
       <div id="mapa-pontos"></div>
+      <div id="mapa-fixos"></div>
     </div>
   </div>
   <div class="mapa-topo">
     <button class="voltar-mapa" data-ir="ficha">‹ ficha</button>
     <div class="mapa-caso" id="mapa-caso"></div>
   </div>
-  <div class="mapa-dica" id="mapa-dica">aproxime no círculo vermelho para ver os locais</div>
+  <div class="hud">
+    <div class="hud-dados"><span id="hud-libras">£ 10</span><span id="hud-hora">Dia 1 · 08:00</span><span id="hud-rep">Reputação 50</span></div>
+    <button class="hud-caderno" id="btn-caderno">CADERNO</button>
+  </div>
+  <div class="mapa-dica" id="mapa-dica">aproxime para ver os locais · ou abra o caderno</div>
   <div class="painel" id="painel">
     <div class="painel-papel">
       <div class="painel-local" id="painel-local"></div>
@@ -104,12 +109,38 @@
   <button class="som" aria-label="Ligar ou desligar o som">♪</button>
 </section>
 
+<!-- Cartão-postal do local -->
+<div class="cartao" id="cartao">
+  <div class="cartao-papel">
+    <div class="cartao-moldura">
+      <div class="cartao-bairro" id="cartao-bairro"></div>
+      <div class="cartao-foto"><img id="cartao-foto" alt=""></div>
+      <div class="cartao-nome" id="cartao-nome"></div>
+      <div class="cartao-texto" id="cartao-texto"></div>
+      <div class="cartao-desafio" id="cartao-desafio"></div>
+    </div>
+    <button class="cartao-fechar" id="cartao-fechar">voltar ao mapa</button>
+  </div>
+</div>
+
+<!-- Caderno do Sherlock -->
+<div class="caderno" id="caderno">
+  <div class="caderno-papel">
+    <div class="caderno-topo">
+      <select id="caderno-caso" aria-label="Página do caso"></select>
+      <button id="caderno-fechar" aria-label="Fechar caderno">✕</button>
+    </div>
+    <div id="caderno-corpo"></div>
+  </div>
+</div>
+
 <!-- Avisos (manual/info) -->
 <div class="aviso" id="aviso"><div class="aviso-papel"><div id="aviso-texto"></div><button id="aviso-ok">ok</button></div></div>
 
 <script src="data/casos.js"></script>
 <script src="data/casos_cap1.js"></script>
 <script src="js/audio.js"></script>
+<script src="js/jogo.js"></script>
 <script src="js/app.js"></script>
 <script src="js/abertura.js"></script>
 <script src="js/casos.js"></script>
