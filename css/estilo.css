@@ -130,9 +130,13 @@ button{font-family:inherit;cursor:pointer}
 .ponto.fixo.yard button{background:radial-gradient(circle at 35% 30%,#2d4a68,#13243a)}
 .ponto.fixo .rotulo{top:33px}
 .ponto.sherlock{pointer-events:none;z-index:5}
-.sherlock-icone{position:absolute;left:0;top:0;width:42px;height:42px;margin:-74px 0 0 -21px;border-radius:50%;background:#f1e3c4;border:3px solid #7d1914;
-  display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 10px rgba(0,0,0,.6)}
-.sherlock-icone::after{content:"";position:absolute;left:50%;bottom:-11px;margin-left:-7px;border:7px solid transparent;border-top-color:#7d1914;border-bottom:0}
+.sherlock-icone{position:absolute;left:0;top:0;width:58px;height:58px;margin:-88px 0 0 -29px;border-radius:50%;
+  background:#efe2c2 radial-gradient(circle at 40% 35%,#f8efda,#e2d0a8);border:2px solid #3a2212;outline:1px solid #3a2212;outline-offset:-6px;
+  display:flex;align-items:center;justify-content:center;box-shadow:0 5px 12px rgba(0,0,0,.55)}
+.sherlock-icone img{width:42px;height:42px;object-fit:contain;display:block}
+.sherlock-icone.viajando{width:66px;height:66px;margin:-96px 0 0 -33px}
+.sherlock-icone.viajando img{width:52px;height:52px}
+.sherlock-icone::after{content:"";position:absolute;left:50%;bottom:-13px;margin-left:-8px;border:8px solid transparent;border-top-color:#3a2212;border-bottom:0}
 .ponto.destaque button{animation:destaque 1.6s ease-out 2}
 @keyframes destaque{0%{box-shadow:0 0 0 0 rgba(255,230,160,.95)}100%{box-shadow:0 0 0 46px rgba(255,230,160,0)}}
 
@@ -147,7 +151,8 @@ button{font-family:inherit;cursor:pointer}
 .painel{z-index:7}
 .painel-opcoes button{display:flex;align-items:center;gap:10px}
 .painel-opcoes button:disabled{opacity:.45}
-.op-icone{font-size:22px;width:28px;text-align:center}
+.op-icone{width:40px;height:34px;flex:none;display:flex;align-items:center;justify-content:center;background:#efe2c2;border-radius:5px;padding:2px}
+.op-icone img{max-width:100%;max-height:100%;display:block}
 .op-nome{flex:1}
 .op-info{font-size:13px;color:#d9c49a;white-space:nowrap}
 

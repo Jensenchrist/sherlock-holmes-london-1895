@@ -151,7 +151,7 @@
     marcador(camadaFixos, "fixo", Jogo.BASE.x, Jogo.BASE.y, `<button aria-label="221B Baker Street">221B</button><span class="rotulo">Baker Street</span>`, () => tocar(Jogo.BASE));
     marcador(camadaFixos, "fixo yard", Jogo.YARD.x, Jogo.YARD.y, `<button aria-label="Scotland Yard">SY</button><span class="rotulo">Scotland Yard</span>`, () => tocar(Jogo.YARD));
     const aqui = achar(prog.pos) || Jogo.BASE;
-    sherlock = marcador(camadaFixos, "sherlock", aqui.x, aqui.y, `<div class="sherlock-icone">🎩</div>`);
+    sherlock = marcador(camadaFixos, "sherlock", aqui.x, aqui.y, `<div class="sherlock-icone"><img src="assets/icones/sherlock.png" alt=""></div>`);
     atualizarHud(); aplicar();
   }
   function atualizarHud() {
@@ -176,7 +176,7 @@
     if (prog.pos === destino.id) { abrirLocal(destino); return; }
     const origem = achar(prog.pos) || Jogo.BASE, ops = Jogo.opcoesViagem(origem, destino);
     abrirPainel(destino.nome, `${destino.bairro} · ${ops[0].km.toFixed(1).replace(".", ",")} km de ${origem.nome}.\nComo Holmes vai até lá?`, ops.map(o => ({
-      texto: `<span class="op-icone">${o.icone}</span><span class="op-nome">${o.nome}</span><span class="op-info">${Jogo.duracao(o.tempo)} · ${o.custo ? "£ " + o.custo : "grátis"}</span>`,
+      texto: `<span class="op-icone"><img src="assets/icones/${o.modo}.png" alt=""></span><span class="op-nome">${o.nome}</span><span class="op-info">${Jogo.duracao(o.tempo)} · ${o.custo ? "£ " + o.custo : "grátis"}</span>`,
       desabilitado: !o.podePagar,
       acao: () => { fecharPainel(); viajar(origem, destino, o); }
     })), true);
@@ -188,7 +188,9 @@
     rota.setAttribute("d", dPath); revela.setAttribute("d", dPath); sombra.setAttribute("d", "");
     rota.setAttribute("class", op.modo); $("mapa-rota").classList.add("ativa"); viajando = true; aplicar();
     const total = rota.getTotalLength(); revela.style.strokeDasharray = total; revela.style.strokeDashoffset = total;
-    sherlock.el.querySelector(".sherlock-icone").textContent = op.icone;
+    const ic = sherlock.el.querySelector(".sherlock-icone"), icImg = ic.querySelector("img");
+    icImg.src = `assets/icones/${op.modo}.png`; ic.classList.add("viajando");
+    icImg.style.transform = destino.x < origem.x ? "scaleX(-1)" : ""; // o desenho olha para a direita
     // enquadra o trajeto inteiro
     const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]), vw = vp.clientWidth, vh = vp.clientHeight;
     const bw = Math.max(...xs) - Math.min(...xs) + 900, bh = Math.max(...ys) - Math.min(...ys) + 900;
@@ -205,7 +207,7 @@
     })(t0));
     Jogo.viajar(caso, destino, op); atualizarHud();
     await voarPara(destino.x, destino.y, ZOOM_LOCAL, 650);
-    sherlock.el.querySelector(".sherlock-icone").textContent = "🎩";
+    icImg.src = "assets/icones/sherlock.png"; icImg.style.transform = ""; ic.classList.remove("viajando");
     rota.setAttribute("d", ""); revela.setAttribute("d", ""); $("mapa-rota").classList.remove("ativa"); viajando = false;
     abrirLocal(destino);
   }
