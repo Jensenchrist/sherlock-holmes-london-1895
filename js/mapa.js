@@ -149,8 +149,8 @@
       const st = prog.resolvidos.includes(loc.id) ? " feito" : prog.visitados.includes(loc.id) ? " visitado" : "";
       marcador(camadaPontos, "local" + st, loc.x, loc.y, `<button aria-label="${loc.nome}">${k + 1}</button><span class="rotulo">${loc.nome}</span>`, () => tocar(loc));
     });
-    marcador(camadaFixos, "fixo", Jogo.BASE.x, Jogo.BASE.y, `<button aria-label="221B Baker Street">221B</button><span class="rotulo">Baker Street</span>`, () => tocar(Jogo.BASE));
-    marcador(camadaFixos, "fixo yard", Jogo.YARD.x, Jogo.YARD.y, `<button aria-label="Scotland Yard">SY</button><span class="rotulo">Scotland Yard</span>`, () => tocar(Jogo.YARD));
+    marcador(camadaFixos, "fixo", Jogo.BASE.x, Jogo.BASE.y, `<button aria-label="221B Baker Street"><img src="assets/icones/221b.png" alt=""></button><span class="rotulo">221B Baker Street</span>`, () => tocar(Jogo.BASE));
+    marcador(camadaFixos, "fixo yard", Jogo.YARD.x, Jogo.YARD.y, `<button aria-label="Scotland Yard"><img src="assets/icones/yard.png" alt=""></button><span class="rotulo">Scotland Yard</span>`, () => tocar(Jogo.YARD));
     const aqui = achar(prog.pos) || Jogo.BASE;
     sherlock = marcador(camadaFixos, "sherlock", aqui.x, aqui.y, `<div class="sherlock-icone"><img src="assets/icones/sherlock.png" alt=""></div>`);
     atualizarHud(); aplicar();

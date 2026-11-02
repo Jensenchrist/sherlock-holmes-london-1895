@@ -125,10 +125,12 @@ button{font-family:inherit;cursor:pointer}
 #rota-linha.pe{stroke:#3a2212}
 #mapa-fixos{position:absolute;inset:0;z-index:5;pointer-events:none}
 .ponto.feito button{background:radial-gradient(circle at 35% 30%,#c9a25c,#6b4e22);animation:none}
-.ponto.fixo button{width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:50%;border:3px solid #f1e3c4;font-size:15px;letter-spacing:.02em;
-  background:radial-gradient(circle at 35% 30%,#5a3c22,#2a1a0e);color:#f3dfb0;animation:none;box-shadow:0 3px 10px rgba(0,0,0,.7)}
-.ponto.fixo.yard button{background:radial-gradient(circle at 35% 30%,#2d4a68,#13243a)}
-.ponto.fixo .rotulo{top:33px}
+.ponto.fixo button{width:62px;height:62px;margin:-31px 0 0 -31px;border-radius:50%;padding:6px;animation:none;
+  background:#efe2c2 radial-gradient(circle at 40% 35%,#f8efda,#e2d0a8);border:2px solid #3a2212;outline:1px solid #3a2212;outline-offset:-6px;
+  box-shadow:0 4px 10px rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center}
+.ponto.fixo button img{max-width:40px;max-height:42px;display:block}
+.ponto.fixo.yard button{background:#efe2c2 radial-gradient(circle at 40% 35%,#f8efda,#e2d0a8)}
+.ponto.fixo .rotulo{top:35px}
 .ponto.sherlock{pointer-events:none;z-index:5}
 .sherlock-icone{position:absolute;left:0;top:0;width:58px;height:58px;margin:-88px 0 0 -29px;border-radius:50%;
   background:#efe2c2 radial-gradient(circle at 40% 35%,#f8efda,#e2d0a8);border:2px solid #3a2212;outline:1px solid #3a2212;outline-offset:-6px;
