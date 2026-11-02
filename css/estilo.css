@@ -262,3 +262,5 @@ button{font-family:inherit;cursor:pointer}
   background:radial-gradient(ellipse 120% 90% at 50% 45%,#3a4a7a,#141a38 70%,#080b1c)}
 #mapa-luz{position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none}
 #hud-hora{cursor:pointer}
+.sherlock-icone:not(.viajando){overflow:visible}
+.sherlock-icone:not(.viajando) img{width:52px;height:52px;border-radius:50%;object-fit:cover}
