@@ -10,10 +10,8 @@ window.App = (() => {
     // fica cortada em cima com uma faixa preta embaixo. Usa a altura real da tela nesses casos.
     const app = navigator.standalone || matchMedia("(display-mode: standalone)").matches;
     const vw = window.innerWidth;
-    const telaCheia = screen.height * (vw / screen.width);
     let vh = Math.max(window.innerHeight, document.documentElement.clientHeight);
-    // no app instalado (tela inicial), o iPhone às vezes informa a altura sem a barra de status: usa a tela inteira
-    if (app) vh = Math.max(vh, telaCheia);
+
     document.documentElement.style.setProperty("--altura", vh + "px");
     document.querySelectorAll(".tela").forEach(t => {
       const p = t.querySelector(".palco"); if (!p) return;
@@ -62,7 +60,7 @@ window.App = (() => {
     });
     document.querySelectorAll(".som").forEach(x => x.classList.toggle("mudo", Som.mudo));
     document.getElementById("aviso-ok").onclick = () => document.getElementById("aviso").classList.remove("aberto");
-    document.querySelector('[data-acao="manual"]').onclick = () => aviso("MANUAL\n\nEscolha um caso na gaveta e leia a ficha.\n\nNo mapa, aproxime com dois dedos: os locais do caso aparecem como bolinhas vermelhas. O caderno lista todos eles.\n\nToque num local para viajar: a pé (grátis e lento), de carruagem (rápida, custa libras) ou de barco pelo Tâmisa.\n\nEm cada local há um desafio. Resolva e a pista vai para o caderno.\n\nNo 221B, releia as pistas e escreva suas conclusões. Na Scotland Yard, apresente-as a Lestrade. Errar custa reputação e diminui a recompensa");
+    document.querySelector('[data-acao="manual"]').onclick = () => aviso("MANUAL\n\nEscolha um caso na gaveta e leia a ficha.\n\nNo mapa, aproxime com dois dedos: os locais do caso aparecem como bolinhas vermelhas.\n\nToque num local para viajar: a pé (grátis e lento), de carruagem (rápida, custa libras) ou de barco pelo Tâmisa.\n\nEm cada local há um desafio. Resolva e a pista vai para o caderno.\n\nNo 221B, releia as pistas e escreva suas conclusões. Na Scotland Yard, apresente-as a Lestrade. Errar custa reputação e diminui a recompensa");
     document.querySelector('[data-acao="info"]').onclick = () => aviso("SHERLOCK HOLMES — LONDRES 1895\n\nVersão 0.1 (protótipo)\nCriado por Jeferson Justen Christ.");
     document.getElementById("btn-iniciar").onclick = () => { Som.iniciar(); ir("abertura"); };
   }

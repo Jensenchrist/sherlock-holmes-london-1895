@@ -25,8 +25,9 @@
   const geral = $("mapa-geral"), svgRota = $("mapa-rota");
   function aplicar() {
     limites();
-    const k = MW / 2736; // a vista geral tem 2736 px de largura
-    geral.style.transform = `translate(${tx}px,${ty}px) scale(${s * k})`;
+    // vista geral: tamanho real em CSS (sem transform), para o iPhone não criar uma camada gigante ao ampliar
+    geral.style.left = Math.round(tx) + "px"; geral.style.top = Math.round(ty) + "px";
+    geral.style.width = Math.round(MW * s) + "px"; geral.style.height = Math.round(MH * s) + "px";
     const op = suave(minS * 1.5, minS * 2.6, s);
     camadaTiles.style.opacity = op;
     camadaTiles.style.visibility = op > 0 ? "visible" : "hidden";
@@ -95,7 +96,7 @@
       // posição na tela (arredondada para não abrir frestas entre tiles)
       const L = Math.floor(tx + img._c * img._tw * s), Tp = Math.floor(ty + img._l * img._tw * s);
       const R = Math.ceil(tx + Math.min((img._c + 1) * img._tw, MW) * s), B = Math.ceil(ty + Math.min((img._l + 1) * img._tw, MH) * s);
-      img.style.transform = `translate(${L}px,${Tp}px)`; img.style.width = (R - L) + "px"; img.style.height = (B - Tp) + "px";
+      img.style.left = L + "px"; img.style.top = Tp + "px"; img.style.width = (R - L) + "px"; img.style.height = (B - Tp) + "px";
     });
   }
 
@@ -327,18 +328,6 @@
       ta.oninput = () => { p.conclusoes[q.id] = ta.value; Jogo.salvar(); };
       corpo.appendChild(sec);
     });
-    if (!ativo) return;
-    const locais = document.createElement("section"); locais.className = "cad-locais";
-    locais.innerHTML = `<h3>Locais</h3>`;
-    todos().forEach(l => {
-      const st = l.id === "221b" || l.id === "yard" ? "" : p.resolvidos.includes(l.id) ? "✓ pista" : p.visitados.includes(l.id) ? "visitado" : "";
-      const linha = document.createElement("div"); linha.className = "cad-local" + (p.pos === l.id ? " aqui" : "");
-      linha.innerHTML = `<span class="n"></span><span class="b"></span><span class="st">${p.pos === l.id ? "você está aqui" : st}</span><button>ver no mapa</button>`;
-      linha.querySelector(".n").textContent = l.nome; linha.querySelector(".b").textContent = l.bairro;
-      linha.querySelector("button").onclick = async () => { caderno.classList.remove("aberto"); await voarPara(l.x, l.y, ZOOM_LOCAL, 800); destacar(l); };
-      locais.appendChild(linha);
-    });
-    corpo.appendChild(locais);
   }
   function destacar(l) {
     const m = marcadores.find(k => k.x === l.x && k.y === l.y && !k.el.classList.contains("sherlock"));
@@ -346,6 +335,8 @@
   }
   $("btn-caderno").onclick = () => abrirCaderno();
   $("caderno-fechar").onclick = () => caderno.classList.remove("aberto");
+
+  window._mapa = { voarPara, get s() { return s; } }; // usado nos testes
 
   // ---------- entrada no mapa ----------
   App.aoEntrar.mapa = (c) => {
