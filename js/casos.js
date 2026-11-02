@@ -7,9 +7,12 @@
   document.getElementById("placa-gaveta").textContent = `CASOS ${casos[0].id} – ${casos[casos.length - 1].id}`;
 
   // cada caso só abre depois que o anterior for resolvido
+  // Fase de testes: todos os casos abertos. Para voltar ao destravamento em sequência, mude para false.
+  const LIBERAR_TODOS = true;
   function lacrado(k) {
     const c = casos[k];
     if (c.bloqueado || c.reescrever) return true;
+    if (LIBERAR_TODOS) return false;
     if (k === 0) return false;
     const ant = Jogo.estado().casos[casos[k - 1].id];
     return !(ant && ant.resolvido);
@@ -46,7 +49,10 @@
 
   App.aoEntrar.casos = () => {
     // volta a gaveta para o caso mais recente que já pode ser jogado
-    if (!App.estado.caso) { let k = 0; while (k + 1 < casos.length && !lacrado(k + 1)) k++; i = k; }
+    if (!App.estado.caso) { // primeiro caso ainda não resolvido
+      const res = id => { const p = Jogo.estado().casos[id]; return p && p.resolvido; };
+      let k = 0; while (k + 1 < casos.length && res(casos[k].id) && !lacrado(k + 1)) k++; i = k;
+    }
     else { const k = casos.indexOf(App.estado.caso); if (k >= 0) { i = k; if (App.estado.caso.situacao === "RESOLVIDO" && k + 1 < casos.length && !lacrado(k + 1)) i = k + 1; } }
     preencher(); ficha.classList.add("escondida");
     setTimeout(() => ficha.classList.remove("escondida"), 450);
