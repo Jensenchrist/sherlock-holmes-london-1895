@@ -87,6 +87,6 @@ window.Jogo = (() => {
     return pergunta.aceitas.some(a => contem(texto, a)) && !(pergunta.erradas || []).some(a => contem(texto, a));
   }
 
-  return { BASE, YARD, estado: () => e, salvar, caso, gastar, hora, duracao, opcoesViagem, trajeto, viajar, confereDesafio, confereConclusao,
+  return { BASE, YARD, TAMISA, estado: () => e, salvar, caso, gastar, hora, duracao, opcoesViagem, trajeto, viajar, confereDesafio, confereConclusao,
     ganhar(l) { e.libras += l; salvar(); }, reputar(r) { e.reputacao = Math.max(0, Math.min(100, e.reputacao + r)); salvar(); } };
 })();
