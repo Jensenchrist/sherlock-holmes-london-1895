@@ -172,6 +172,8 @@
       const cx = caso.locais.reduce((a, l) => a + l.x, 0) / caso.locais.length;
       const cy = caso.locais.reduce((a, l) => a + l.y, 0) / caso.locais.length;
       const a = areaCaso.firstElementChild; a.style.left = cx + "px"; a.style.top = cy + "px";
+      const raio = Math.max(350, Math.max(...caso.locais.map(l => Math.hypot(l.x - cx, l.y - cy))) + 225);
+      a.style.width = a.style.height = raio * 2 + "px"; a.style.margin = `${-raio}px 0 0 ${-raio}px`;
       tx = vw / 2 - cx * s; ty = vh / 2 - cy * s; aplicar();
     });
     Som.musica("partida");

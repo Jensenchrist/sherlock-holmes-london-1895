@@ -6,7 +6,12 @@ window.App = (() => {
   const aoEntrar = {};
 
   function ajustarPalcos() {
-    const vw = window.innerWidth, vh = window.innerHeight;
+    // No iPhone instalado (tela cheia), innerHeight às vezes vem menor que a tela real e a arte
+    // fica cortada em cima com uma faixa preta embaixo. Usa a altura real da tela nesses casos.
+    const app = navigator.standalone || matchMedia("(display-mode: standalone)").matches;
+    const vw = window.innerWidth;
+    const vh = app ? Math.max(window.innerHeight, screen.height * (vw / screen.width)) : window.innerHeight;
+    document.documentElement.style.setProperty("--altura", vh + "px");
     document.querySelectorAll(".tela").forEach(t => {
       const p = t.querySelector(".palco"); if (!p) return;
       const [w, h] = PROPORCAO[t.id];
@@ -52,7 +57,7 @@ window.App = (() => {
     document.querySelectorAll(".som").forEach(x => x.classList.toggle("mudo", Som.mudo));
     document.getElementById("aviso-ok").onclick = () => document.getElementById("aviso").classList.remove("aberto");
     document.querySelector('[data-acao="manual"]').onclick = () => aviso("MANUAL\n\nNa gaveta de CASOS, escolha uma ficha e leia o relato.\nNo mapa, aproxime com dois dedos: os locais do caso aparecem como bolinhas vermelhas.\nToque nas bolinhas para investigar. Quando tiver as pistas, resolva o caso.\n\n(Manual provisório: a jogabilidade ainda está sendo definida.)");
-    document.querySelector('[data-acao="info"]').onclick = () => aviso("SHERLOCK HOLMES — LONDRES 1895\n\nVersão 0.1 (protótipo)\nUma produção NOVAstudio.");
+    document.querySelector('[data-acao="info"]').onclick = () => aviso("SHERLOCK HOLMES — LONDRES 1895\n\nVersão 0.1 (protótipo)\nCriado por Jeferson Justen Christ.");
     document.getElementById("btn-iniciar").onclick = () => { Som.iniciar(); ir("abertura"); };
   }
 

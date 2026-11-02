@@ -6,7 +6,7 @@ html,body{margin:0;height:100%;background:var(--noite);color:#f1e3c4;overflow:hi
 button{font-family:inherit;cursor:pointer}
 
 /* ---------- telas ---------- */
-.tela{position:fixed;inset:0;opacity:0;visibility:hidden;transition:opacity .7s ease,visibility 0s linear .7s;background:var(--noite);overflow:hidden}
+.tela{position:fixed;left:0;top:0;width:100vw;height:var(--altura,100lvh);opacity:0;visibility:hidden;transition:opacity .7s ease,visibility 0s linear .7s;background:var(--noite);overflow:hidden}
 .tela.ativa{opacity:1;visibility:visible;transition:opacity .7s ease,visibility 0s}
 
 /* palco = arte em tamanho "cover", com tudo posicionado em % por cima */
@@ -61,7 +61,7 @@ button{font-family:inherit;cursor:pointer}
 .f-relato{left:15.5%;top:31.9%;width:69.3%;font-size:2.76cqw;line-height:1.38;min-height:11%}
 .f-relato.digitando::after{content:"▌";animation:cursor .8s steps(1) infinite}
 @keyframes cursor{50%{opacity:0}}
-.f-local{left:15.8%;top:44.83%;font-size:2.3cqw}
+.f-local{left:15.8%;top:44.83%;font-size:2.3cqw;max-width:30.5%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .f-data{left:49.7%;top:44.83%;font-size:2.3cqw}
 .f-rotulo-obj{left:15.8%;top:51.3%;font-size:2.9cqw}
 .f-objetivo{left:15.8%;top:53.9%;width:49%;font-size:2.9cqw;line-height:1.59}

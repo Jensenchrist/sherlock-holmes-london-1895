@@ -6,12 +6,19 @@
   const esq = document.querySelector("#casos .seta-esq"), dir = document.querySelector("#casos .seta-dir");
   document.getElementById("placa-gaveta").textContent = `CASOS ${casos[0].id} – ${casos[casos.length - 1].id}`;
 
+  // cada caso só abre depois que o anterior for resolvido
+  function lacrado(k) {
+    if (casos[k].bloqueado) return true;
+    if (k === 0) return false;
+    try { const p = JSON.parse(localStorage.getItem("sh_prog") || "{}"); return !(p[casos[k - 1].id] && p[casos[k - 1].id].resolvido); }
+    catch (e) { return false; }
+  }
   function preencher() {
-    const c = casos[i];
+    const c = casos[i], tranc = lacrado(i);
     document.getElementById("fg-num").textContent = "Nº " + c.id;
     document.getElementById("fg-titulo").textContent = c.titulo;
-    document.getElementById("fg-local").textContent = c.bloqueado ? "caso ainda lacrado" : `${c.endereco} · ${c.ano}`;
-    ficha.style.opacity = c.bloqueado ? 0.82 : 1;
+    document.getElementById("fg-local").textContent = tranc ? "caso lacrado" : `${c.endereco} · ${c.ano}`;
+    ficha.style.opacity = tranc ? 0.82 : 1;
     esq.disabled = i === 0; dir.disabled = i === casos.length - 1;
   }
   function trocar(novo) {
@@ -23,7 +30,7 @@
   dir.onclick = () => trocar(i + 1);
   ficha.onclick = () => {
     const c = casos[i];
-    if (c.bloqueado) { App.aviso(`CASO Nº ${c.id}\n\nEste caso ainda está lacrado.`); return; }
+    if (lacrado(i)) { App.aviso(`CASO Nº ${c.id}\n\nEste caso está lacrado.\nResolva o caso Nº ${casos[i - 1].id} para abri-lo.`); return; }
     App.estado.caso = c; App.ir("ficha", c);
   };
   // deslizar o dedo troca de ficha
@@ -36,6 +43,9 @@
   });
 
   App.aoEntrar.casos = () => {
+    // volta a gaveta para o caso mais recente que já pode ser jogado
+    if (!App.estado.caso) { let k = 0; while (k + 1 < casos.length && !lacrado(k + 1)) k++; i = k; }
+    else { const k = casos.indexOf(App.estado.caso); if (k >= 0) { i = k; if (App.estado.caso.situacao === "RESOLVIDO" && k + 1 < casos.length && !lacrado(k + 1)) i = k + 1; } }
     preencher(); ficha.classList.add("escondida");
     setTimeout(() => ficha.classList.remove("escondida"), 450);
     Som.musica("abertura");
