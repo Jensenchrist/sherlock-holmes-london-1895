@@ -1,0 +1,17 @@
+{
+  "largura": 6620,
+  "altura": 3726,
+  "tile": 512,
+  "niveis": [
+    {
+      "escala": 1.0,
+      "colunas": 13,
+      "linhas": 8
+    },
+    {
+      "escala": 0.5,
+      "colunas": 7,
+      "linhas": 4
+    }
+  ]
+}

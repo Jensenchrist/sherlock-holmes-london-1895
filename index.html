@@ -1,1 +1,116 @@
-<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>London 1895 — mapa navegável</title><style>*{box-sizing:border-box}body{margin:0;background:#1d1b16;color:#f5e6ca;font:15px system-ui}header{position:absolute;z-index:2;top:12px;left:12px;background:#26231cdd;border:1px solid #9d8059;border-radius:12px;padding:12px;max-width:340px}header strong{display:block}small{color:#d0bfa0}#viewport{position:absolute;inset:0;overflow:hidden;touch-action:none;cursor:grab}#map{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform;user-select:none;pointer-events:none}#map img{width:100%;height:100%;display:block}nav{position:absolute;bottom:16px;right:16px;display:flex;gap:8px}button{background:#e8d3a8;border:1px solid #987b4c;border-radius:10px;padding:12px 16px;font-weight:bold;font-size:18px}#scale{position:absolute;bottom:18px;left:16px;background:#26231cdd;border-radius:8px;padding:8px}</style><div id="viewport"><div id="map"><img src="mapa_mestre_original.png" draggable="false" alt="Mapa mestre de Londres em 1895"></div></div><header><strong>🎩 Londres 1895 — navegação experimental</strong><small>Arraste para mover · use dois dedos ou a roda do mouse para zoom.</small></header><div id="scale">Zoom <span id="zoom">1.0×</span></div><nav><button id="minus">−</button><button id="reset">⌂</button><button id="plus">+</button></nav><script>const vp=document.querySelector('#viewport'),el=document.querySelector('#map'),label=document.querySelector('#zoom');const W=1672,H=941;let scale=1,base=1,x=0,y=0,points=new Map(),prevDist=0;function bounds(){let vw=vp.clientWidth,vh=vp.clientHeight,mw=W*scale,mh=H*scale;x=mw<=vw?(vw-mw)/2:Math.min(0,Math.max(vw-mw,x));y=mh<=vh?(vh-mh)/2:Math.min(0,Math.max(vh-mh,y));}function draw(){bounds();el.style.width=W+'px';el.style.height=H+'px';el.style.transform=`translate(${x}px,${y}px) scale(${scale})`;label.textContent=(scale/base).toFixed(2)+'×';}function fit(){base=Math.min(vp.clientWidth/W,vp.clientHeight/H);scale=base;x=(vp.clientWidth-W*scale)/2;y=(vp.clientHeight-H*scale)/2;draw()}function zoomAt(f,cx,cy){let next=Math.max(base,Math.min(base*5,scale*f)),ratio=next/scale;x=cx-(cx-x)*ratio;y=cy-(cy-y)*ratio;scale=next;draw()}vp.addEventListener('wheel',e=>{e.preventDefault();zoomAt(Math.exp(-e.deltaY*.001),e.clientX,e.clientY)},{passive:false});vp.addEventListener('pointerdown',e=>{vp.setPointerCapture(e.pointerId);points.set(e.pointerId,[e.clientX,e.clientY]);prevDist=0});vp.addEventListener('pointermove',e=>{if(!points.has(e.pointerId))return;let old=points.get(e.pointerId);points.set(e.pointerId,[e.clientX,e.clientY]);if(points.size===1){x+=e.clientX-old[0];y+=e.clientY-old[1];draw()}else if(points.size===2){let p=[...points.values()],dist=Math.hypot(p[0][0]-p[1][0],p[0][1]-p[1][1]);if(prevDist)zoomAt(dist/prevDist,(p[0][0]+p[1][0])/2,(p[0][1]+p[1][1])/2);prevDist=dist}});for(let ev of ['pointerup','pointercancel'])vp.addEventListener(ev,e=>{points.delete(e.pointerId);prevDist=0});document.querySelector('#plus').onclick=()=>zoomAt(1.5,vp.clientWidth/2,vp.clientHeight/2);document.querySelector('#minus').onclick=()=>zoomAt(1/1.5,vp.clientWidth/2,vp.clientHeight/2);document.querySelector('#reset').onclick=fit;addEventListener('resize',fit);fit();</script></html>
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sherlock 1895">
+<meta name="theme-color" content="#120d09">
+<title>Sherlock Holmes — Londres 1895</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="assets/img/icone-180.png">
+<link rel="stylesheet" href="css/estilo.css">
+</head>
+<body>
+
+<!-- Toque inicial: libera o som no iPhone -->
+<section id="inicio" class="tela ativa">
+  <div class="palco"><img src="assets/img/capa_sem_sombra.jpg" alt=""></div>
+  <button id="btn-iniciar" class="toque-inicial">toque para entrar</button>
+</section>
+
+<!-- Abertura animada -->
+<section id="abertura" class="tela">
+  <div class="palco" id="palco-abertura">
+    <img class="capa-base" src="assets/img/capa_sem_sombra.jpg" alt="">
+    <img class="capa-sombra" src="assets/img/capa.jpg" alt="Porta do 221B Baker Street com a sombra de Sherlock Holmes">
+    <div class="lampiao" style="left:20.5%;top:39.8%"></div>
+    <div class="lampiao" style="left:81.6%;top:39.8%"></div>
+    <canvas class="nevoa"></canvas>
+    <nav class="menu-capa">
+      <button data-ir="casos">CASOS</button>
+      <button data-acao="manual">MANUAL</button>
+      <button data-acao="info">INFO</button>
+    </nav>
+  </div>
+  <button class="som" aria-label="Ligar ou desligar o som">♪</button>
+</section>
+
+<!-- Arquivo de casos (gaveta) -->
+<section id="casos" class="tela">
+  <div class="palco" id="palco-casos">
+    <img src="assets/img/gaveta.jpg" alt="Arquivo de fichas de madeira com uma gaveta aberta">
+    <div class="ficha-gaveta-janela">
+      <div class="ficha-gaveta" id="ficha-gaveta">
+        <div class="aba"><span id="fg-num">Nº 001</span></div>
+        <div class="corpo">
+          <div class="fg-titulo" id="fg-titulo">A CARTA SEM REMETENTE</div>
+          <div class="fg-local" id="fg-local">221B Baker Street · 1895</div>
+        </div>
+      </div>
+    </div>
+    <div class="placa-gaveta" id="placa-gaveta">CASOS 001 – 011</div>
+    <button class="seta seta-esq" aria-label="Caso anterior">‹</button>
+    <button class="seta seta-dir" aria-label="Próximo caso">›</button>
+    <div class="dica">toque na ficha para abrir · deslize para trocar</div>
+  </div>
+  <button class="voltar" data-ir="abertura">‹ voltar</button>
+</section>
+
+<!-- Ficha do caso -->
+<section id="ficha" class="tela">
+  <div class="palco" id="palco-ficha">
+    <img src="assets/img/ficha.jpg" alt="Ficha de caso em papel envelhecido">
+    <div class="f f-rotulo-num">CASO Nº</div>
+    <div class="f f-num" id="f-num">001</div>
+    <div class="f f-titulo" id="f-titulo"></div>
+    <div class="f f-relato" id="f-relato"></div>
+    <div class="f f-local" id="f-local"></div>
+    <div class="f f-data" id="f-data"></div>
+    <div class="f f-rotulo-obj">OBJETIVO:</div>
+    <div class="f f-objetivo" id="f-objetivo"></div>
+    <div class="f f-rotulo-sit">SITUAÇÃO</div>
+    <div class="f f-situacao" id="f-situacao"></div>
+    <button class="btn-caso" id="btn-ir-caso">IR PARA O CASO</button>
+  </div>
+  <button class="voltar" data-ir="casos">‹ arquivo</button>
+</section>
+
+<!-- Mapa -->
+<section id="mapa" class="tela">
+  <div id="mapa-viewport">
+    <div id="mapa-mundo">
+      <img id="mapa-geral" src="assets/img/mapa_geral.jpg" alt="Mapa de Londres em 1895" draggable="false">
+      <div id="mapa-tiles"></div>
+      <div id="mapa-pontos"></div>
+    </div>
+  </div>
+  <div class="mapa-topo">
+    <button class="voltar-mapa" data-ir="ficha">‹ ficha</button>
+    <div class="mapa-caso" id="mapa-caso"></div>
+  </div>
+  <div class="mapa-dica" id="mapa-dica">aproxime com dois dedos para ver os locais do caso</div>
+  <div class="painel" id="painel">
+    <div class="painel-papel">
+      <div class="painel-local" id="painel-local"></div>
+      <div class="painel-texto" id="painel-texto"></div>
+      <div class="painel-opcoes" id="painel-opcoes"></div>
+      <button class="painel-fechar" id="painel-fechar">fechar</button>
+    </div>
+  </div>
+  <button class="som" aria-label="Ligar ou desligar o som">♪</button>
+</section>
+
+<!-- Avisos (manual/info) -->
+<div class="aviso" id="aviso"><div class="aviso-papel"><div id="aviso-texto"></div><button id="aviso-ok">ok</button></div></div>
+
+<script src="data/casos.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/app.js"></script>
+<script src="js/abertura.js"></script>
+<script src="js/casos.js"></script>
+<script src="js/mapa.js"></script>
+</body>
+</html>
