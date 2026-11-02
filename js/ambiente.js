@@ -2,7 +2,7 @@
    que acendem e tremulam ao anoitecer, e névoa que passa devagar.
    Desenha num único canvas do tamanho da tela (leve para o iPhone). */
 window.Ambiente = (() => {
-  const L = window.LAMPIOES || [];
+  const L = window.MOSTRAR_LUZES ? (window.LAMPIOES || []) : []; // luzes automáticas desligadas: acertavam postes e erravam muito
   const N = L.length / 3;
   const cv = document.getElementById("mapa-luz"), ctx = cv.getContext("2d");
   const noite = document.getElementById("mapa-noite");
