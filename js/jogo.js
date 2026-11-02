@@ -50,6 +50,8 @@ window.Jogo = (() => {
   // pontos do trajeto (barco segue o rio)
   function trajeto(a, b, modo) {
     if (modo !== "barco") {
+      const rua = window.Ruas && Ruas.caminho(a, b);
+      if (rua) return rua;
       const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2, dx = b.x - a.x, dy = b.y - a.y, k = 0.12;
       const cx = mx - dy * k, cy = my + dx * k, pts = [];
       for (let i = 0; i <= 40; i++) { const t = i / 40; pts.push([(1 - t) * (1 - t) * a.x + 2 * (1 - t) * t * cx + t * t * b.x, (1 - t) * (1 - t) * a.y + 2 * (1 - t) * t * cy + t * t * b.y]); }

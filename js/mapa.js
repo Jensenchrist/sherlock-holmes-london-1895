@@ -183,7 +183,7 @@
     })), true);
   }
   async function viajar(origem, destino, op) {
-    viajando = true; dica.style.opacity = 0;
+    viajando = true; dica.style.opacity = 0; $("mapa").classList.add("mapa-antigo");
     const pts = Jogo.trajeto(origem, destino, op.modo);
     const dPath = "M" + pts.map(p => p.map(Math.round).join(" ")).join(" L");
     rota.setAttribute("d", dPath); revela.setAttribute("d", dPath); sombra.setAttribute("d", "");
@@ -210,7 +210,7 @@
     Jogo.viajar(caso, destino, op); atualizarHud();
     await voarPara(destino.x, destino.y, ZOOM_LOCAL, 650);
     icImg.src = "assets/icones/sherlock.png"; icImg.style.transform = ""; ic.classList.remove("viajando");
-    rota.setAttribute("d", ""); revela.setAttribute("d", ""); $("mapa-rota").classList.remove("ativa"); viajando = false;
+    rota.setAttribute("d", ""); revela.setAttribute("d", ""); $("mapa-rota").classList.remove("ativa"); viajando = false; $("mapa").classList.remove("mapa-antigo");
     abrirLocal(destino);
   }
 

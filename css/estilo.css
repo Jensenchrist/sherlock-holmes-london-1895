@@ -262,3 +262,11 @@ button{font-family:inherit;cursor:pointer}
   background:radial-gradient(ellipse 120% 90% at 50% 45%,#3a4a7a,#141a38 70%,#080b1c)}
 #mapa-luz{position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none}
 #hud-hora{cursor:pointer}
+
+/* ---------- viagem: o mapa vira gravura antiga ---------- */
+#mapa-tiles,#mapa-geral{transition:filter .9s ease}
+#mapa.mapa-antigo #mapa-tiles,#mapa.mapa-antigo #mapa-geral{filter:sepia(.9) saturate(.5) contrast(1.18) brightness(1.04)}
+#mapa-papel{position:absolute;inset:0;z-index:2;pointer-events:none;opacity:0;transition:opacity .9s ease;mix-blend-mode:multiply;
+  background:radial-gradient(ellipse 85% 75% at 50% 50%,rgba(240,226,190,0) 45%,rgba(120,88,40,.55) 100%),linear-gradient(rgba(214,196,150,.35),rgba(214,196,150,.35))}
+#mapa.mapa-antigo #mapa-papel{opacity:1}
+#mapa.mapa-antigo #mapa-luz{opacity:.35}
