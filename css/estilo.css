@@ -74,10 +74,10 @@ button{font-family:inherit;cursor:pointer}
 /* ---------- mapa ---------- */
 #mapa{background:#1b140d}
 #mapa-viewport{position:absolute;inset:0;overflow:hidden;touch-action:none}
-#mapa-mundo{position:absolute;left:0;top:0;width:6620px;height:3726px;transform-origin:0 0;will-change:transform}
-#mapa-geral{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
+#mapa-mundo{position:absolute;inset:0;overflow:hidden}
+#mapa-geral{position:absolute;left:0;top:0;width:2736px;height:1540px;transform-origin:0 0;display:block;pointer-events:none}
 #mapa-tiles{position:absolute;inset:0;pointer-events:none;transition:opacity .25s linear}
-#mapa-tiles img{position:absolute;display:block;pointer-events:none}
+#mapa-tiles img{position:absolute;left:0;top:0;display:block;pointer-events:none}
 #mapa-area{position:absolute;inset:0;pointer-events:none;transition:opacity .35s}
 .area-caso{position:absolute;width:900px;height:900px;margin:-450px 0 0 -450px;border-radius:50%;border:36px solid rgba(217,72,58,.95);box-shadow:0 0 80px 20px rgba(217,72,58,.45);
   background:radial-gradient(circle,rgba(217,72,58,.38),rgba(217,72,58,.08) 70%);animation:area 2.4s ease-in-out infinite}
@@ -116,7 +116,7 @@ button{font-family:inherit;cursor:pointer}
 .aviso-papel button{margin-top:14px;background:#3e281a;color:#ecdcb4;border:1px solid #aa8246;border-radius:6px;padding:9px 18px;font-size:15px}
 
 /* ---------- investigação: rota, marcadores fixos, Holmes ---------- */
-#mapa-rota{position:absolute;left:0;top:0;pointer-events:none;overflow:visible}
+#mapa-rota{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;overflow:visible}
 #mapa-rota{display:none}
 #mapa-rota.ativa{display:block}
 #rota-linha{fill:none;stroke:#7d1914;stroke-linecap:round;stroke-linejoin:round}

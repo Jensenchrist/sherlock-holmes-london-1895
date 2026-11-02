@@ -20,17 +20,26 @@
     tx = Math.min(0, Math.max(vw - MW * s, tx)); ty = Math.min(0, Math.max(vh - MH * s, ty));
   }
   function suave(a, b, x) { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); }
+  /* Tudo é posicionado em coordenadas de tela (sem escalar uma camada gigante),
+     para não estourar a memória do iPhone ao dar zoom. */
+  const geral = $("mapa-geral"), svgRota = $("mapa-rota");
   function aplicar() {
     limites();
-    mundo.style.transform = `translate(${tx}px,${ty}px) scale(${s})`;
+    const k = MW / 2736; // a vista geral tem 2736 px de largura
+    geral.style.transform = `translate(${tx}px,${ty}px) scale(${s * k})`;
     const op = suave(minS * 1.5, minS * 2.6, s);
     camadaTiles.style.opacity = op;
+    camadaTiles.style.visibility = op > 0 ? "visible" : "hidden";
+    geral.style.visibility = op < 1 ? "visible" : "hidden";
     const mostrar = s >= ZOOM_PONTOS;
     camadaPontos.style.opacity = mostrar ? 1 : 0;
     camadaPontos.style.pointerEvents = mostrar ? "auto" : "none";
     dica.style.opacity = mostrar || viajando ? 0 : 1;
-    marcadores.forEach(p => p.el.style.transform = `translate(${p.x}px,${p.y}px) scale(${1 / s})`);
-    rota.style.strokeWidth = 7 / s;
+    marcadores.forEach(p => p.el.style.transform = `translate(${Math.round(tx + p.x * s)}px,${Math.round(ty + p.y * s)}px)`);
+    if (viajando) {
+      svgRota.setAttribute("viewBox", `${-tx / s} ${-ty / s} ${vp.clientWidth / s} ${vp.clientHeight / s}`);
+      rota.style.strokeWidth = 7 / s;
+    }
     if (op > 0) atualizarTiles();
   }
   function zoomEm(px, py, novoS) {
@@ -64,23 +73,29 @@
     const n = s >= 0.5 ? 0 : 1, nv = NIVEIS[n], tw = T / nv.esc;
     const vw = vp.clientWidth, vh = vp.clientHeight;
     const x0 = -tx / s, y0 = -ty / s, x1 = x0 + vw / s, y1 = y0 + vh / s;
-    const c0 = Math.max(0, Math.floor(x0 / tw) - 1), c1 = Math.min(nv.cols - 1, Math.floor(x1 / tw) + 1);
-    const l0 = Math.max(0, Math.floor(y0 / tw) - 1), l1 = Math.min(nv.lins - 1, Math.floor(y1 / tw) + 1);
+    const c0 = Math.max(0, Math.floor(x0 / tw)), c1 = Math.min(nv.cols - 1, Math.floor(x1 / tw));
+    const l0 = Math.max(0, Math.floor(y0 / tw)), l1 = Math.min(nv.lins - 1, Math.floor(y1 / tw));
     const vivos = new Set();
     for (let c = c0; c <= c1; c++) for (let l = l0; l <= l1; l++) {
       const k = `${n}_${c}_${l}`; vivos.add(k);
-      if (tiles.has(k)) continue;
-      const img = new Image(); img.decoding = "async"; img.draggable = false;
-      img.style.left = c * tw + "px"; img.style.top = l * tw + "px";
-      img.style.width = Math.min(tw, MW - c * tw) + 0.5 + "px"; img.style.height = Math.min(tw, MH - l * tw) + 0.5 + "px";
-      img.style.zIndex = n === 0 ? 2 : 1;
-      img.src = `assets/tiles/${n}/${c}_${l}.jpg`;
-      camadaTiles.appendChild(img); tiles.set(k, img);
+      let img = tiles.get(k);
+      if (!img) {
+        img = new Image(); img.decoding = "async"; img.draggable = false;
+        img.style.zIndex = n === 0 ? 2 : 1; img._c = c; img._l = l; img._tw = tw;
+        img.src = `assets/tiles/${n}/${c}_${l}.jpg`;
+        camadaTiles.appendChild(img); tiles.set(k, img);
+      }
+      if (img._tchau) { clearTimeout(img._tchau); img._tchau = null; }
     }
     tiles.forEach((img, k) => {
-      if (vivos.has(k)) return;
-      if (!k.startsWith(n + "_")) { if (!img._tchau) img._tchau = setTimeout(() => { img.remove(); tiles.delete(k); }, 800); }
-      else { img.remove(); tiles.delete(k); }
+      if (!vivos.has(k)) {
+        if (!k.startsWith(n + "_") && !img._tchau) img._tchau = setTimeout(() => { img.remove(); tiles.delete(k); }, 500);
+        else if (k.startsWith(n + "_")) { img.remove(); tiles.delete(k); return; }
+      }
+      // posição na tela (arredondada para não abrir frestas entre tiles)
+      const L = Math.floor(tx + img._c * img._tw * s), Tp = Math.floor(ty + img._l * img._tw * s);
+      const R = Math.ceil(tx + Math.min((img._c + 1) * img._tw, MW) * s), B = Math.ceil(ty + Math.min((img._l + 1) * img._tw, MH) * s);
+      img.style.transform = `translate(${L}px,${Tp}px)`; img.style.width = (R - L) + "px"; img.style.height = (B - Tp) + "px";
     });
   }
 
@@ -168,7 +183,7 @@
     viajando = true; dica.style.opacity = 0;
     const pts = Jogo.trajeto(origem, destino, op.modo);
     rota.setAttribute("d", "M" + pts.map(p => p.map(Math.round).join(" ")).join(" L"));
-    rota.setAttribute("class", op.modo); $("mapa-rota").classList.add("ativa");
+    rota.setAttribute("class", op.modo); $("mapa-rota").classList.add("ativa"); viajando = true; aplicar();
     const total = rota.getTotalLength(); rota.style.strokeDasharray = total; rota.style.strokeDashoffset = total;
     sherlock.el.querySelector(".sherlock-icone").textContent = op.icone;
     // enquadra o trajeto inteiro
