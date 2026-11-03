@@ -229,8 +229,55 @@
     if (local.id === "221b") return abrirBase();
     if (local.id === "yard") return abrirYard();
     if (!prog.visitados.includes(local.id)) { prog.visitados.push(local.id); Jogo.gastar(20); atualizarHud(); }
+    if (caso.fichas) { prog.fichas = prog.fichas || []; (local.fichasVisita || []).forEach(f => { if (!prog.fichas.includes(f)) prog.fichas.push(f); }); Jogo.salvar(); }
     abrirCartao(local, local.descricao, "");
-    desenharDesafio(local);
+    if (caso.fichas) desenharLocalFichas(local); else desenharDesafio(local);
+  }
+
+  /* ---------- formato de fichas (caso 001) ---------- */
+  const ORIGEM = { vi: "VIU", prova: "PROVA", ouvi: "OUVIU DIZER", boato: "BOATO" };
+  function cartaoFicha(id, c = caso) {
+    const f = c.fichas[id], el = document.createElement("div");
+    el.className = "ficha-cartao o-" + f.origem; el.dataset.id = id;
+    el.innerHTML = `<span class="ficha-selo">${ORIGEM[f.origem]}</span><b></b><p></p>`;
+    el.querySelector("b").textContent = f.fonte; el.querySelector("p").textContent = f.texto;
+    return el;
+  }
+  function blocoAnotadas(ids, novo) {
+    const d = document.createElement("div"); d.className = "anotadas" + (novo ? " nova" : "");
+    d.innerHTML = `<div class="anotadas-tit">ANOTADO NO CADERNO</div>`;
+    ids.forEach(id => d.appendChild(cartaoFicha(id)));
+    return d;
+  }
+  function desenharLocalFichas(local, novo) {
+    const box = $("cartao-desafio"); box.innerHTML = "";
+    const visita = local.fichasVisita || [];
+    if (visita.length) box.appendChild(blocoAnotadas(visita));
+    if (!local.desafio) return;
+    if (prog.resolvidos.includes(local.id)) { box.appendChild(blocoAnotadas(local.fichas, novo)); return; }
+    const d = local.desafio, temDica = prog.dicas.includes(local.id), w = document.createElement("div");
+    w.innerHTML = `<div class="desafio-tipo">${d.tipo}</div><p class="desafio-enunciado"></p>
+      <div class="desafio-linha"><input id="desafio-resp" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="sua resposta"><button id="desafio-ok">OK</button></div>
+      <div class="desafio-msg" id="desafio-msg"></div>
+      <button class="desafio-dica" id="desafio-dica">${temDica ? "" : "pedir uma dica ao Watson (30 min)"}</button>
+      <p class="desafio-dica-texto" id="desafio-dica-texto"></p>`;
+    box.appendChild(w);
+    w.querySelector(".desafio-enunciado").textContent = d.enunciado;
+    if (temDica) $("desafio-dica-texto").textContent = "Watson: " + d.dica;
+    const ok = () => {
+      const r = $("desafio-resp").value; if (!r.trim()) return;
+      if (Jogo.confereDesafio(d, r)) {
+        prog.resolvidos.push(local.id); prog.fichas = prog.fichas || [];
+        local.fichas.forEach(f => { if (!prog.fichas.includes(f)) prog.fichas.push(f); });
+        Jogo.salvar(); desenharLocalFichas(local, true); Som.campainha();
+      } else {
+        Jogo.gastar(10); atualizarHud();
+        $("desafio-msg").textContent = "Não é isso. Holmes reflete mais um pouco (10 min)."; box.classList.remove("errou"); void box.offsetWidth; box.classList.add("errou");
+      }
+    };
+    $("desafio-ok").onclick = ok;
+    $("desafio-resp").onkeydown = e => { if (e.key === "Enter") ok(); };
+    if (!temDica) $("desafio-dica").onclick = () => { prog.dicas.push(local.id); Jogo.gastar(30); atualizarHud(); desenharLocalFichas(local); };
   }
   function desenharDesafio(local) {
     const box = $("cartao-desafio"), d = local.desafio, feito = prog.resolvidos.includes(local.id);
@@ -276,32 +323,53 @@
   }
   function abrirYard() {
     if (prog.resolvido) { abrirCartao(Jogo.YARD, "O inspetor Lestrade ergue a xícara: \"Caso encerrado, Holmes. A Yard agradece.\"", ""); return; }
-    const faltam = caso.perguntas.filter(q => !(prog.conclusoes[q.id] || "").trim());
+    const lig = prog.ligacoes || {};
+    const faltam = caso.perguntas.filter(q => !(prog.conclusoes[q.id] || "").trim() || (caso.fichas && !(lig[q.id] || []).length));
     let html = `<div class="yard-lista">` + caso.perguntas.map(q => `<div class="yard-item"><b></b><p></p></div>`).join("") + `</div>`;
-    html += faltam.length ? `<p class="yard-aviso">Escreva todas as conclusões no caderno antes de procurar Lestrade.</p><button class="cartao-acao" id="yard-caderno">ABRIR O CADERNO</button>`
+    html += faltam.length ? `<p class="yard-aviso">${caso.fichas ? "Para cada pergunta, escreva a conclusão e ligue as fichas que a provam." : "Escreva todas as conclusões no caderno antes de procurar Lestrade."}</p><button class="cartao-acao" id="yard-caderno">ABRIR O CADERNO</button>`
                           : `<button class="cartao-acao" id="yard-apresentar">APRESENTAR AO INSPETOR LESTRADE</button>`;
     abrirCartao(Jogo.YARD, "O inspetor Lestrade tamborila os dedos na mesa. \"Então, Sr. Holmes? A Yard não tem o dia todo. O que o senhor descobriu?\"", html);
     $("cartao-desafio").querySelectorAll(".yard-item").forEach((el, k) => {
-      const q = caso.perguntas[k]; el.querySelector("b").textContent = q.titulo; el.querySelector("p").textContent = prog.conclusoes[q.id] || "— sem conclusão —";
+      const q = caso.perguntas[k]; el.querySelector("b").textContent = q.titulo;
+      let t = prog.conclusoes[q.id] || "— sem conclusão —";
+      if (caso.fichas) t += "\nProvas: " + ((lig[q.id] || []).map(id => caso.fichas[id].fonte).join("; ") || "nenhuma");
+      el.querySelector("p").textContent = t;
     });
     if (faltam.length) $("yard-caderno").onclick = () => { cartao.classList.remove("aberto"); abrirCaderno(); };
     else $("yard-apresentar").onclick = apresentar;
   }
+  /* avalia cada pergunta: conclusão certa, sem ficha enganosa, e com quantas fichas sólidas (vi/prova) */
+  function avaliar() {
+    const lig = prog.ligacoes || {};
+    return caso.perguntas.map(q => {
+      const l = lig[q.id] || [], certo = Jogo.confereConclusao(q, prog.conclusoes[q.id]);
+      if (!caso.fichas) return { q, erro: certo ? null : "conclusão" };
+      const engano = l.filter(id => (q.enganam || []).includes(id));
+      const solidas = l.filter(id => (q.sustentam || []).includes(id) && ["vi", "prova"].includes(caso.fichas[id].origem)).length;
+      return { q, erro: !certo ? "conclusão" : engano.length ? engano : null, fraca: solidas < 2 };
+    });
+  }
   function apresentar() {
-    const erradas = caso.perguntas.filter(q => !Jogo.confereConclusao(q, prog.conclusoes[q.id]));
+    const av = avaliar(), erradas = av.filter(a => a.erro), fracas = av.filter(a => !a.erro && a.fraca);
     const box = $("cartao-desafio");
     if (!erradas.length) {
       const r = recompensaAtual();
-      prog.resolvido = true; caso.situacao = "RESOLVIDO"; Jogo.ganhar(r.valor); Jogo.reputar(10); atualizarHud();
+      if (fracas.length) r.valor = Math.round(r.valor * 0.6);
+      const rep = fracas.length ? 4 : 10;
+      prog.resolvido = true; caso.situacao = "RESOLVIDO"; Jogo.ganhar(r.valor); Jogo.reputar(rep); atualizarHud();
       box.innerHTML = `<div class="yard-resultado certo"><b>CASO RESOLVIDO</b><p class="r1"></p><p class="r2"></p></div><button class="cartao-acao" id="yard-fim">VOLTAR AO ARQUIVO</button>`;
-      box.querySelector(".r1").textContent = `Lestrade aperta sua mão: "Brilhante, Holmes!"\nRecompensa: £ ${r.valor}${r.atrasado ? " (fora do prazo)" : ""} · Reputação +10`;
+      box.querySelector(".r1").textContent = (fracas.length
+        ? `Lestrade coça o bigode: "O senhor acertou, Holmes, mas um advogado esperto derrubaria parte disso no tribunal." Provas frágeis em:\n` + fracas.map(a => "• " + a.q.titulo).join("\n") + "\n\n"
+        : `Lestrade aperta sua mão: "Brilhante, Holmes! Nem o melhor advogado de Londres derruba isso."\n`) +
+        `Recompensa: £ ${r.valor}${r.atrasado ? " (fora do prazo)" : ""} · Reputação +${rep}`;
       box.querySelector(".r2").textContent = caso.epilogo;
       $("yard-fim").onclick = () => { cartao.classList.remove("aberto"); App.ir("casos"); };
     } else {
       prog.tentativas++; prog.cliente = Math.max(25, prog.cliente - 25); Jogo.reputar(-8); atualizarHud();
       const r = recompensaAtual();
       box.innerHTML = `<div class="yard-resultado errado"><b>LESTRADE NÃO SE CONVENCEU</b><p class="r1"></p></div><button class="cartao-acao" id="yard-voltar">VOLTAR A INVESTIGAR</button>`;
-      box.querySelector(".r1").textContent = `"Isso não se sustenta, Holmes." Ele não aceitou:\n` + erradas.map(q => "• " + q.titulo).join("\n") +
+      box.querySelector(".r1").textContent = `"Isso não se sustenta, Holmes." Ele não aceitou:\n` + erradas.map(a => "• " + a.q.titulo +
+        (Array.isArray(a.erro) ? `\n   "O senhor se apoiou em ${a.erro.map(id => caso.fichas[id].fonte).join(" e ")}? Isso não prova nada."` : "")).join("\n") +
         `\n\nReputação −8. O cliente ficou desconfiado: a recompensa caiu para £ ${r.valor}.`;
       $("yard-voltar").onclick = () => { cartao.classList.remove("aberto"); abrirCaderno(); };
     }
@@ -325,7 +393,7 @@
     const p = Jogo.caso(c), corpo = $("caderno-corpo");
     const prazo = Jogo.hora(p.inicio + c.prazoHoras * 60);
     const valor = Math.round(c.recompensa * p.cliente / 100);
-    const total = c.locais.length, achadas = p.resolvidos.length;
+    const total = c.fichas ? Object.keys(c.fichas).length : c.locais.length, achadas = c.fichas ? (p.fichas || []).length : p.resolvidos.length;
     corpo.innerHTML = `<article class="livro">
       <header class="lv-cab">
         <div class="lv-selo"><small>ARQUIVO</small><span>CASO</span><b></b><small>BAKER ST.</small></div>
@@ -336,7 +404,7 @@
         <div><dt>Local</dt><dd class="d-local"></dd></div>
         <div><dt>${p.resolvido ? "Situação" : "Recompensa"}</dt><dd>${p.resolvido ? "Resolvido" : "£ " + valor}</dd></div>
         <div><dt>Prazo</dt><dd>${prazo}</dd></div>
-        <div><dt>Pistas</dt><dd>${achadas} de ${total}</dd></div>
+        <div><dt>${c.fichas ? "Fichas" : "Pistas"}</dt><dd>${c.fichas ? achadas : achadas + " de " + total}</dd></div>
       </dl>
       <div class="lv-perguntas"></div>
       <footer class="lv-pe">
@@ -348,6 +416,7 @@
     corpo.querySelector("h2").textContent = titulo(c.titulo);
     corpo.querySelector(".d-local").textContent = c.endereco;
     const box = corpo.querySelector(".lv-perguntas");
+    if (c.fichas) return desenharQuadro(c, p, box);
     c.perguntas.forEach((q, k) => {
       const sec = document.createElement("section"); sec.className = "lv-perg";
       const pistas = c.locais.filter(l => p.resolvidos.includes(l.id) && l.pista.pergunta === q.id);
@@ -361,6 +430,52 @@
       ta.oninput = () => { p.conclusoes[q.id] = ta.value; Jogo.salvar(); };
       box.appendChild(sec);
       if (k < c.perguntas.length - 1) { const o = document.createElement("div"); o.className = "lv-orn mini"; o.innerHTML = "<span>✦ ✦ ✦</span>"; box.appendChild(o); }
+    });
+  }
+  /* quadro de fichas: todas as fichas coletadas e, em cada pergunta, as fichas ligadas e a conclusão */
+  function desenharQuadro(c, p, box) {
+    p.fichas = p.fichas || []; p.ligacoes = p.ligacoes || {};
+    const quadro = document.createElement("section"); quadro.className = "lv-quadro";
+    quadro.innerHTML = `<h3><span>✦</span> <em>Fichas recolhidas</em></h3>
+      <p class="lv-legenda"><i class="o-vi">VIU</i> testemunha direta · <i class="o-prova">PROVA</i> objeto ou documento · <i class="o-ouvi">OUVIU DIZER</i> de segunda mão · <i class="o-boato">BOATO</i> jornal ou rumor</p>`;
+    const grade = document.createElement("div"); grade.className = "lv-grade";
+    if (!p.fichas.length) grade.innerHTML = `<p class="vazia">Nenhuma ficha ainda. Visite os locais do caso.</p>`;
+    p.fichas.forEach(id => grade.appendChild(cartaoFicha(id, c)));
+    quadro.appendChild(grade); box.appendChild(quadro);
+    c.perguntas.forEach((q, k) => {
+      const o = document.createElement("div"); o.className = "lv-orn mini"; o.innerHTML = "<span>✦ ✦ ✦</span>"; box.appendChild(o);
+      const sec = document.createElement("section"); sec.className = "lv-perg";
+      sec.innerHTML = `<h3><span>${ROMANOS[k]}.</span> <em></em></h3>
+        <div class="lv-ligadas"></div><div class="lv-base"></div>
+        <button class="lv-ligar">${p.resolvido ? "" : "ligar fichas a esta pergunta"}</button><div class="lv-escolha"></div>
+        <div class="lv-nota"><i class="lv-clipe"></i><label>Conclusão de Holmes</label><textarea rows="3" placeholder="datilografe aqui sua dedução..."></textarea></div>`;
+      sec.querySelector("em").textContent = q.titulo;
+      const lig = () => p.ligacoes[q.id] = (p.ligacoes[q.id] || []).filter(id => p.fichas.includes(id));
+      const redesenhar = () => {
+        const l = lig(), area = sec.querySelector(".lv-ligadas"); area.innerHTML = "";
+        if (!l.length) area.innerHTML = `<p class="vazia">Nenhuma ficha ligada. Sem provas, Lestrade não aceita.</p>`;
+        l.forEach(id => area.appendChild(cartaoFicha(id, c)));
+        const n = { vi: 0, prova: 0, ouvi: 0, boato: 0 }; l.forEach(id => n[c.fichas[id].origem]++);
+        sec.querySelector(".lv-base").textContent = l.length ? `Base: ${n.vi + n.prova} sólida(s) · ${n.ouvi + n.boato} de ouvir dizer ou boato` : "";
+      };
+      redesenhar();
+      const escolha = sec.querySelector(".lv-escolha"), btn = sec.querySelector(".lv-ligar");
+      btn.onclick = () => {
+        if (escolha.childElementCount) { escolha.innerHTML = ""; btn.textContent = "ligar fichas a esta pergunta"; return; }
+        btn.textContent = "pronto";
+        if (!p.fichas.length) { escolha.innerHTML = `<p class="vazia">Você ainda não tem fichas.</p>`; return; }
+        p.fichas.forEach(id => {
+          const f = c.fichas[id], lab = document.createElement("label"); lab.className = "lv-opcao o-" + f.origem;
+          lab.innerHTML = `<input type="checkbox"><span class="ficha-selo">${ORIGEM[f.origem]}</span><span class="t"></span>`;
+          lab.querySelector(".t").textContent = f.fonte + ": " + f.texto;
+          const cb = lab.querySelector("input"); cb.checked = lig().includes(id);
+          cb.onchange = () => { const l = lig(); if (cb.checked) { if (!l.includes(id)) l.push(id); } else l.splice(l.indexOf(id), 1); Jogo.salvar(); redesenhar(); };
+          escolha.appendChild(lab);
+        });
+      };
+      const ta = sec.querySelector("textarea"); ta.value = p.conclusoes[q.id] || ""; ta.readOnly = p.resolvido;
+      ta.oninput = () => { p.conclusoes[q.id] = ta.value; Jogo.salvar(); };
+      box.appendChild(sec);
     });
   }
   function destacar(l) {
