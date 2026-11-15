@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Protótipo · Marylebone</title>
+<style>
+html,body{margin:0;height:100%;background:#120d09;overflow:hidden;font-family:Georgia,serif;-webkit-user-select:none;user-select:none}
+#vp{position:fixed;inset:0;overflow:hidden;touch-action:none}
+#mundo{position:absolute;left:0;top:0;transform-origin:0 0}
+#mapa{display:block;width:2560px;height:1440px;pointer-events:none}
+#sh{position:absolute;left:0;top:0;width:96px;height:128px;margin:-122px 0 0 -48px;background:url(sherlock.png) 0 0/384px 512px;pointer-events:none;filter:drop-shadow(0 6px 4px rgba(0,0,0,.45))}
+#alvo{position:absolute;width:26px;height:12px;margin:-6px 0 0 -13px;border:2px solid #f3d27a;border-radius:50%;opacity:0;pointer-events:none}
+#alvo.on{animation:alvo .7s ease-out}
+@keyframes alvo{from{opacity:1;transform:scale(.4)}to{opacity:0;transform:scale(1.6)}}
+.dica{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 14px);transform:translateX(-50%);background:rgba(18,13,9,.85);color:#ecdcb4;border:1px solid #aa8246;border-radius:16px;padding:7px 14px;font-size:14px;white-space:nowrap}
+</style>
+</head>
+<body>
+<div id="vp"><div id="mundo"><img id="mapa" src="marylebone.jpg" alt="Marylebone, 1895" draggable="false"><div id="alvo"></div><div id="sh"></div></div></div>
+<div class="dica">toque numa rua para o Holmes andar · pinça para zoom</div>
+<script>
+(() => {
+  const MW = 2560, MH = 1440, CEL = 16, ESC = 0.32;  // tamanho do Holmes no mapa
+  const vp = document.getElementById("vp"), mundo = document.getElementById("mundo"), sh = document.getElementById("sh"), alvo = document.getElementById("alvo");
+  let s = 1, tx = 0, ty = 0, minS = 1, seguir = true;
+  // ---------- grade de ruas ----------
+  let GW = 0, GH = 0, rua = null;
+  const img = new Image();
+  img.onload = () => { const c = document.createElement("canvas"); c.width = GW = img.width; c.height = GH = img.height;
+    const g = c.getContext("2d"); g.drawImage(img, 0, 0); const d = g.getImageData(0, 0, GW, GH).data;
+    rua = new Uint8Array(GW * GH); for (let i = 0; i < GW * GH; i++) rua[i] = d[i * 4] > 128 ? 1 : 0; };
+  img.src = "ruas.png";
+  const naRua = (cx, cy) => { for (let r = 0; r < 12; r++) for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
+    const x = cx + dx, y = cy + dy; if (x >= 0 && y >= 0 && x < GW && y < GH && rua[y * GW + x]) return [x, y]; } return null; };
+  function caminho(a, b) {
+    const s0 = naRua(Math.floor(a.x / CEL), Math.floor(a.y / CEL)), e0 = naRua(Math.floor(b.x / CEL), Math.floor(b.y / CEL));
+    if (!s0 || !e0) return null;
+    const N = GW * GH, de = new Int32Array(N).fill(-1), vis = new Uint8Array(N), q = [s0[1] * GW + s0[0]], fim = e0[1] * GW + e0[0];
+    vis[q[0]] = 1;
+    for (let h = 0; h < q.length; h++) { const u = q[h]; if (u === fim) break; const ux = u % GW, uy = (u / GW) | 0;
+      for (const [dx, dy] of [[1,0],[-1,0],[0,1],[0,-1]]) { const x = ux + dx, y = uy + dy; if (x < 0 || y < 0 || x >= GW || y >= GH) continue;
+        const v = y * GW + x; if (!vis[v] && rua[v]) { vis[v] = 1; de[v] = u; q.push(v); } } }
+    if (!vis[fim]) return null;
+    const pts = []; for (let u = fim; u >= 0; u = de[u]) pts.push([(u % GW + .5) * CEL, (((u / GW) | 0) + .5) * CEL]);
+    pts.reverse();
+    // tira pontos no meio de retas
+    const r = [pts[0]]; for (let i = 1; i < pts.length - 1; i++) { const [a, b, c] = [pts[i - 1], pts[i], pts[i + 1]]; if ((b[0] - a[0]) !== (c[0] - b[0]) || (b[1] - a[1]) !== (c[1] - b[1])) r.push(b); }
+    r.push(pts[pts.length - 1]); return r;
+  }
+  // ---------- Holmes ----------
+  const H = { x: 1045, y: 650, dir: "baixo", quadro: 0, rota: [], vel: 120 };
+  const LIN = { baixo: 0, cima: 1, direita: 2, esquerda: 2 };
+  function desenhaHolmes(andando) {
+    const col = andando ? H.quadro : ({ baixo: 0, cima: 1, direita: 2, esquerda: 2 })[H.dir];
+    const lin = andando ? LIN[H.dir] : 3;
+    sh.style.backgroundPosition = `${-col * 96}px ${-lin * 128}px`;
+    sh.style.transform = `translate(${H.x}px,${H.y}px) scale(${ESC}) ${H.dir === "esquerda" ? "scaleX(-1)" : ""}`;
+    sh.style.transformOrigin = "48px 122px";
+  }
+  // ---------- câmera ----------
+  function limites() { const vw = vp.clientWidth, vh = vp.clientHeight; minS = Math.max(vw / MW, vh / MH); s = Math.min(Math.max(s, minS), 3);
+    tx = Math.min(0, Math.max(vw - MW * s, tx)); ty = Math.min(0, Math.max(vh - MH * s, ty)); }
+  function aplicar() { limites(); mundo.style.transform = `translate(${tx}px,${ty}px) scale(${s})`; }
+  function centrar() { tx = vp.clientWidth / 2 - H.x * s; ty = vp.clientHeight / 2 - H.y * s; aplicar(); }
+  // ---------- laço ----------
+  let t0 = performance.now(), acum = 0;
+  function quadro(t) {
+    const dt = Math.min(.05, (t - t0) / 1000); t0 = t;
+    let andando = false;
+    if (H.rota.length) {
+      const [px, py] = H.rota[0], dx = px - H.x, dy = py - H.y, d = Math.hypot(dx, dy), passo = H.vel * dt;
+      if (Math.abs(dx) > Math.abs(dy)) H.dir = dx > 0 ? "direita" : "esquerda"; else if (d > 0.1) H.dir = dy > 0 ? "baixo" : "cima";
+      if (d <= passo) { H.x = px; H.y = py; H.rota.shift(); } else { H.x += dx / d * passo; H.y += dy / d * passo; }
+      andando = true; acum += dt; if (acum > .14) { acum = 0; H.quadro = (H.quadro + 1) % 4; }
+      if (seguir) { const vw = vp.clientWidth, vh = vp.clientHeight, ax = vw / 2 - H.x * s, ay = vh / 2 - H.y * s; tx += (ax - tx) * Math.min(1, dt * 4); ty += (ay - ty) * Math.min(1, dt * 4); aplicar(); }
+    }
+    desenhaHolmes(andando);
+    requestAnimationFrame(quadro);
+  }
+  // ---------- gestos ----------
+  const dedos = new Map(); let dist0 = 0, meio0 = null, moveu = false;
+  vp.addEventListener("pointerdown", e => { vp.setPointerCapture(e.pointerId); dedos.set(e.pointerId, { x: e.clientX, y: e.clientY }); moveu = false;
+    if (dedos.size === 2) { const [a, b] = [...dedos.values()]; dist0 = Math.hypot(a.x - b.x, a.y - b.y); meio0 = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }; } });
+  vp.addEventListener("pointermove", e => { if (!dedos.has(e.pointerId)) return; const ant = dedos.get(e.pointerId), at = { x: e.clientX, y: e.clientY }; dedos.set(e.pointerId, at);
+    if (dedos.size === 1) { if (Math.abs(at.x - ant.x) + Math.abs(at.y - ant.y) > 1) { moveu = true; seguir = false; } tx += at.x - ant.x; ty += at.y - ant.y; aplicar(); }
+    else if (dedos.size === 2) { const [a, b] = [...dedos.values()], d = Math.hypot(a.x - b.x, a.y - b.y), m = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+      const wx = (m.x - tx) / s, wy = (m.y - ty) / s; s = Math.min(Math.max(s * d / dist0, minS), 3); tx = m.x - wx * s; ty = m.y - wy * s; dist0 = d; aplicar(); moveu = true; } });
+  function soltar(e) { if (!dedos.has(e.pointerId)) return; dedos.delete(e.pointerId);
+    if (dedos.size === 0 && !moveu && rua) { const wx = (e.clientX - tx) / s, wy = (e.clientY - ty) / s, r = caminho(H, { x: wx, y: wy });
+      if (r) { H.rota = r; seguir = true; alvo.style.left = r[r.length - 1][0] + "px"; alvo.style.top = r[r.length - 1][1] + "px"; alvo.classList.remove("on"); void alvo.offsetWidth; alvo.classList.add("on"); } } }
+  vp.addEventListener("pointerup", soltar); vp.addEventListener("pointercancel", soltar);
+  vp.addEventListener("wheel", e => { e.preventDefault(); const wx = (e.clientX - tx) / s, wy = (e.clientY - ty) / s; s = Math.min(Math.max(s * Math.exp(-e.deltaY * .0015), minS), 3); tx = e.clientX - wx * s; ty = e.clientY - wy * s; aplicar(); }, { passive: false });
+  window.addEventListener("resize", aplicar);
+  s = Math.max(vp.clientWidth / MW, vp.clientHeight / MH) * 1.6; centrar(); requestAnimationFrame(quadro);
+  window._H = H; window._cam = () => ({ s, tx, ty });
+})();
+</script>
+</body>
+</html>
