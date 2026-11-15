@@ -1,0 +1,29 @@
+; Projeto Godot do jogo Sherlock Holmes: Londres 1895 (protótipo de caminhada)
+config_version=5
+
+[application]
+
+config/name="Sherlock Holmes - Londres 1895"
+run/main_scene="res://main.tscn"
+config/features=PackedStringArray("4.3", "GL Compatibility")
+
+[display]
+
+window/size/viewport_width=720
+window/size/viewport_height=1280
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=1
+
+[gui]
+
+theme/custom_font="res://fontes/IMFell.ttf"
+
+[input_devices]
+
+pointing/emulate_mouse_from_touch=true
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
