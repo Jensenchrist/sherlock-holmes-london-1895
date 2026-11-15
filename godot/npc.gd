@@ -96,7 +96,9 @@ func _process(dt: float) -> void:
 		var lin: int = {"baixo": 0, "cima": 1, "direita": 2, "esquerda": 2}[direcao]
 		frame = lin * 4 + int(quadro)
 		flip_h = direcao == "esquerda"
+		offset = Vector2(0, -107 - abs(sin(quadro / 4.0 * TAU * 2.0)) * 5.0)
 	else:
+		offset = Vector2(0, -107)
 		flip_h = false
 		var para := olhar if fixo else direcao
 		if fixo and desvio.length() >= 4.0:

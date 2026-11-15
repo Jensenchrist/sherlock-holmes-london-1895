@@ -6,6 +6,7 @@ extends Node2D
 const CEL := 12  # tamanho da célula da grade de caminhada, em pixels da arte
 const NPC := preload("res://npc.gd")
 const VEICULO := preload("res://veiculo.gd")
+const RECORTES := preload("res://recortes_dados.gd")
 
 const CENAS := {
 	"baker": {
@@ -179,11 +180,13 @@ var cruz_dono = null
 var prox_ped := 0.0
 var prox_veic := 0.0
 var luzes: Array = []      # [PointLight2D, energia base, tipo, fase]
+var recortes: Array = []   # postes, árvores e bancos que cobrem quem passa atrás
 
 var hora := 18.5           # relógio do jogo
 var noite := 0.0           # 0 = entardecer, 1 = noite fechada
 var hora_alvo := -1.0
 
+var _cb_ir: JavaScriptObject
 var tex_ped := {}
 var tex_veic := {}
 var tex_luz: Texture2D
@@ -234,6 +237,9 @@ func _ready() -> void:
 				inicio = id
 		if h.contains("noite"):
 			hora = 21.0
+		# window.irPara(x, y) manda o Holmes andar até um ponto da pintura (usado nos testes)
+		_cb_ir = JavaScriptBridge.create_callback(_ir_js)
+		JavaScriptBridge.get_interface("window").irPara = _cb_ir
 	carregar(inicio, null)
 
 func _textura_radial(lado: int, pos: Array, cores: Array) -> Texture2D:
@@ -255,9 +261,10 @@ func carregar(id: String, entrada) -> void:
 	cena_id = id
 	if cena:
 		cena.queue_free()
-	for f in pedestres + veiculos:
+	for f in pedestres + veiculos + recortes:
 		if is_instance_valid(f):
 			f.queue_free()
+	recortes.clear()
 	pedestres.clear()
 	veiculos.clear()
 	luzes.clear()
@@ -276,7 +283,7 @@ func carregar(id: String, entrada) -> void:
 	tam = mapa.texture.get_size()
 	var mat := ShaderMaterial.new()
 	mat.shader = load("res://mapa.gdshader")
-	mat.set_shader_parameter("tam", tam)
+	mat.set_shader_parameter("recorte", tam)
 	var arv := PackedVector4Array()
 	for a in c["arvores"]:
 		arv.append(a)
@@ -286,6 +293,7 @@ func carregar(id: String, entrada) -> void:
 	mat.set_shader_parameter("n_arvores", c["arvores"].size())
 	mat.set_shader_parameter("agua_y", c["agua"])
 	mapa.material = mat
+	_montar_recortes(c, arv)
 
 	_montar_grade(c)
 	_montar_luzes(c)
@@ -332,6 +340,25 @@ func carregar(id: String, entrada) -> void:
 	_novo_veiculo(true)
 	prox_ped = randf_range(1.0, 3.0)
 	prox_veic = randf_range(3.0, 6.0)
+
+# objetos da pintura que precisam ficar na frente de quem passa atrás deles
+func _montar_recortes(c: Dictionary, arv: PackedVector4Array) -> void:
+	for r in RECORTES.DADOS[cena_id]:
+		var s := Sprite2D.new()
+		s.texture = load("res://arte/recortes/" + r[6])
+		s.centered = false
+		s.position = Vector2(r[1] + r[3] / 2.0, r[5])
+		s.offset = Vector2(-r[3] / 2.0, r[2] - r[5])
+		if r[0] == "arvore":
+			var m := ShaderMaterial.new()
+			m.shader = load("res://mapa.gdshader")
+			m.set_shader_parameter("origem", Vector2(r[1], r[2]))
+			m.set_shader_parameter("recorte", Vector2(r[3], r[4]))
+			m.set_shader_parameter("arvores", arv)
+			m.set_shader_parameter("n_arvores", c["arvores"].size())
+			s.material = m
+		atores.add_child(s)
+		recortes.append(s)
 
 func _montar_grade(c: Dictionary) -> void:
 	astar = AStarGrid2D.new()
@@ -634,7 +661,14 @@ func _animar(dt: float) -> void:
 		var lin: int = {"baixo": 0, "cima": 1, "direita": 2, "esquerda": 2}[direcao]
 		holmes.frame = lin * 4 + int(quadro)
 		holmes.flip_h = direcao == "esquerda"
+		# cada quadro é uma passada: o corpo sobe e desce e balança de um pé para o outro
+		var fase := quadro / 4.0 * TAU * 2.0
+		holmes.offset = Vector2(0, -107 - abs(sin(fase)) * 7.0)
+		var balanco := 2.2 if direcao == "baixo" or direcao == "cima" else 1.0
+		holmes.rotation_degrees = sin(fase * 0.5) * balanco
 	else:
+		holmes.offset = Vector2(0, -107)
+		holmes.rotation_degrees = 0.0
 		holmes.flip_h = false
 		holmes.frame = {"baixo": 12, "cima": 13, "direita": 14, "esquerda": 15}[direcao]
 
@@ -783,3 +817,6 @@ func _montar_ui() -> void:
 	veu.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	veu.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	raiz.add_child(veu)
+
+func _ir_js(a: Array) -> void:
+	ir_para(Vector2(float(a[0]), float(a[1])), null)

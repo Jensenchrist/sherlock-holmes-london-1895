@@ -1,13 +1,14 @@
 // Pintura da rua com vida: copas das árvores balançando no vento e o Tâmisa ondulando.
 shader_type canvas_item;
 
-uniform vec2 tam = vec2(880.0, 1168.0);
+uniform vec2 origem = vec2(0.0);           // canto do recorte dentro da pintura
+uniform vec2 recorte = vec2(880.0, 1168.0); // tamanho da imagem (a pintura inteira ou um recorte)
 uniform vec4 arvores[8];          // x, y, raio, fase (em pixels da arte)
 uniform int n_arvores = 0;
 uniform float agua_y = 100000.0;  // abaixo desta linha é água
 
 void fragment() {
-	vec2 p = UV * tam;
+	vec2 p = origem + UV * recorte;
 	vec2 d = vec2(0.0);
 	float rajada = 0.65 + 0.35 * sin(TIME * 0.35) + 0.15 * sin(TIME * 1.1);
 	for (int i = 0; i < 8; i++) {
@@ -25,5 +26,5 @@ void fragment() {
 		d += k * vec2(sin(TIME * 1.6 + p.y * 0.11) * 1.8 + sin(TIME * 0.7 + p.x * 0.02) * 0.8,
 			sin(TIME * 2.1 + p.x * 0.05) * 0.7);
 	}
-	COLOR = texture(TEXTURE, (p - d) / tam);
+	COLOR = texture(TEXTURE, (p - d - origem) / recorte);
 }
