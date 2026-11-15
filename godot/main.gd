@@ -6,6 +6,7 @@ extends Node2D
 const CEL := 12  # tamanho da célula da grade de caminhada, em pixels da arte
 const NPC := preload("res://npc.gd")
 const VEICULO := preload("res://veiculo.gd")
+const BARCO := preload("res://barco.gd")
 const RECORTES := preload("res://recortes_dados.gd")
 
 const CENAS := {
@@ -145,8 +146,10 @@ const CENAS := {
 		"fixos": [["guarda", Vector2(395, 440), "baixo"], ["cavalheiro", Vector2(520, 792), "baixo"]],
 		"luzes": [[Vector2(233, 700), 300, "lampiao"], [Vector2(648, 700), 300, "lampiao"], [Vector2(592, 195), 170, "azul"],
 			[Vector2(230, 195), 110, "janela"], [Vector2(450, 165), 130, "janela"], [Vector2(700, 200), 110, "janela"],
-			[Vector2(320, 140), 100, "janela"], [Vector2(570, 140), 100, "janela"], [Vector2(620, 1050), 150, "janela"]],
-		"fumaca": [Vector2(662, 982)],
+			[Vector2(320, 140), 100, "janela"], [Vector2(570, 140), 100, "janela"]],
+		"fumaca": [],
+		# o Tâmisa: linha d'água das duas faixas (para a direita e para a esquerda)
+		"rio": [1062.0, 1140.0],
 		"arvores": [Vector4(25, 170, 115, 0), Vector4(850, 280, 100, 1.4), Vector4(25, 690, 70, 2.8),
 			Vector4(865, 700, 60, 4)],
 		"agua": 985.0,
@@ -154,6 +157,13 @@ const CENAS := {
 }
 
 const TIPOS_PED := ["cavalheiro", "dama", "senhora", "jornaleiro", "carregador", "guarda", "cavalheiro", "dama"]
+# barcos: escala, velocidade, quadros/s, chaminé (x, y no quadro, a partir do centro-base), luz
+const BARCOS := {
+	"lancha": [0.62, 38.0, 5.0, Vector2(13, -232), Vector2(0, -150)],
+	"lancha2": [0.58, 42.0, 5.0, Vector2(91, -217), Vector2(-40, -140)],
+	"barcaca": [0.62, 22.0, 3.0, null, Vector2(-170, -120)],
+	"bote": [0.32, 20.0, 3.5, null, Vector2(-290, -150)],
+}
 const VEICULOS := {"cab1": [9.0, 1.0], "cab2": [9.0, 1.0], "carga": [6.0, 0.7], "barris": [6.0, 0.65]}  # passos/s, velocidade
 
 var cena_id := ""
@@ -178,6 +188,8 @@ var ocupado := false
 
 var pedestres: Array = []
 var veiculos: Array = []
+var barcos: Array = []
+var prox_barco := 0.0
 var cruz_dono = null
 var prox_ped := 0.0
 var prox_veic := 0.0
@@ -189,6 +201,7 @@ var noite := 0.0           # 0 = entardecer, 1 = noite fechada
 var hora_alvo := -1.0
 
 var _cb_ir: JavaScriptObject
+var _cb_barco: JavaScriptObject
 var tex_ped := {}
 var tex_veic := {}
 var tex_luz: Texture2D
@@ -243,6 +256,8 @@ func _ready() -> void:
 		# window.irPara(x, y) manda o Holmes andar até um ponto da pintura (usado nos testes)
 		_cb_ir = JavaScriptBridge.create_callback(_ir_js)
 		JavaScriptBridge.get_interface("window").irPara = _cb_ir
+		_cb_barco = JavaScriptBridge.create_callback(func(_a): _novo_barco(true))
+		JavaScriptBridge.get_interface("window").novoBarco = _cb_barco
 	carregar(inicio, null)
 
 func _textura_radial(lado: int, pos: Array, cores: Array) -> Texture2D:
@@ -264,12 +279,13 @@ func carregar(id: String, entrada) -> void:
 	cena_id = id
 	if cena:
 		cena.queue_free()
-	for f in pedestres + veiculos + recortes:
+	for f in pedestres + veiculos + recortes + barcos:
 		if is_instance_valid(f):
 			f.queue_free()
 	recortes.clear()
 	pedestres.clear()
 	veiculos.clear()
+	barcos.clear()
 	luzes.clear()
 	marcadores.clear()
 	cruz_dono = null
@@ -341,6 +357,9 @@ func carregar(id: String, entrada) -> void:
 	for k in range(c["max_ped"] - 1):
 		_novo_pedestre("", c["rotas"].pick_random(), null, "", true)
 	_novo_veiculo(true)
+	if c.has("rio"):
+		_novo_barco(true)
+	prox_barco = randf_range(6.0, 12.0)
 	prox_ped = randf_range(1.0, 3.0)
 	prox_veic = randf_range(3.0, 6.0)
 
@@ -417,35 +436,40 @@ func _montar_luzes(c: Dictionary) -> void:
 func _montar_fumaca(c: Dictionary) -> void:
 	var s: float = float(c["escala"]) / 0.42
 	for f in c["fumaca"]:
-		var p := CPUParticles2D.new()
+		var p := _nova_fumaca(s)
 		p.position = f
-		p.z_index = 4
-		p.texture = tex_fumaca
-		p.amount = 10
-		p.lifetime = 6.0
-		p.preprocess = 6.0
-		p.local_coords = false
-		p.emission_shape = CPUParticles2D.EMISSION_SHAPE_SPHERE
-		p.emission_sphere_radius = 4.0 * s
-		p.direction = Vector2(0.35, -1)
-		p.spread = 12.0
-		p.initial_velocity_min = 12.0 * s
-		p.initial_velocity_max = 20.0 * s
-		p.gravity = Vector2(6, -3) * s
-		p.damping_min = 1.0
-		p.damping_max = 2.0
-		p.scale_amount_min = 0.45 * s
-		p.scale_amount_max = 0.7 * s
-		var curva := Curve.new()
-		curva.add_point(Vector2(0, 0.35))
-		curva.add_point(Vector2(1, 1.8))
-		p.scale_amount_curve = curva
-		var g := Gradient.new()
-		g.offsets = PackedFloat32Array([0.0, 0.12, 0.6, 1.0])
-		g.colors = PackedColorArray([Color(0.96, 0.94, 0.9, 0), Color(0.96, 0.94, 0.9, 0.38),
-			Color(0.9, 0.88, 0.86, 0.18), Color(0.85, 0.85, 0.85, 0)])
-		p.color_ramp = g
 		cena.add_child(p)
+
+func _nova_fumaca(s: float) -> CPUParticles2D:
+	var p := CPUParticles2D.new()
+	p.add_to_group("fumaca")
+	p.z_index = 4
+	p.texture = tex_fumaca
+	p.amount = 10
+	p.lifetime = 6.0
+	p.preprocess = 6.0
+	p.local_coords = false
+	p.emission_shape = CPUParticles2D.EMISSION_SHAPE_SPHERE
+	p.emission_sphere_radius = 4.0 * s
+	p.direction = Vector2(0.35, -1)
+	p.spread = 12.0
+	p.initial_velocity_min = 12.0 * s
+	p.initial_velocity_max = 20.0 * s
+	p.gravity = Vector2(6, -3) * s
+	p.damping_min = 1.0
+	p.damping_max = 2.0
+	p.scale_amount_min = 0.45 * s
+	p.scale_amount_max = 0.7 * s
+	var curva := Curve.new()
+	curva.add_point(Vector2(0, 0.35))
+	curva.add_point(Vector2(1, 1.8))
+	p.scale_amount_curve = curva
+	var g := Gradient.new()
+	g.offsets = PackedFloat32Array([0.0, 0.12, 0.6, 1.0])
+	g.colors = PackedColorArray([Color(0.96, 0.94, 0.9, 0), Color(0.96, 0.94, 0.9, 0.38),
+		Color(0.9, 0.88, 0.86, 0.18), Color(0.85, 0.85, 0.85, 0)])
+	p.color_ramp = g
+	return p
 
 func _ajustar_zoom() -> void:
 	if tam == Vector2.ZERO:
@@ -526,6 +550,44 @@ func _novo_veiculo(no_meio := false) -> void:
 			cruz_dono = null)
 	atores.add_child(v)
 	veiculos.append(v)
+
+func _novo_barco(no_meio := false) -> void:
+	var c: Dictionary = CENAS[cena_id]
+	var faixa := randi() % 2
+	for b in barcos:
+		if is_instance_valid(b) and b.dir == (1.0 if faixa == 0 else -1.0):
+			return  # um barco por faixa
+	var tipo: String = BARCOS.keys().pick_random()
+	var dados: Array = BARCOS[tipo]
+	var d := 1.0 if faixa == 0 else -1.0
+	var b := Sprite2D.new()
+	b.set_script(BARCO)
+	b.main = self
+	b.iniciar(load("res://arte/barcos/%s.png" % tipo), dados[0], d, dados[1])
+	b.fps = dados[2]
+	var meio: float = b.texture.get_width() / 8.0 * dados[0]
+	b.y_base = c["rio"][faixa]
+	var x := -meio - 20.0 if d > 0 else tam.x + meio + 20.0
+	if no_meio:
+		x = randf_range(150.0, tam.x - 150.0)
+	b.position = Vector2(x, b.y_base)
+	b.fim = tam.x + meio + 40.0 if d > 0 else meio + 40.0
+	if dados[3] != null:
+		var f := _nova_fumaca(float(c["escala"]) / 0.42 / dados[0])
+		f.preprocess = 0.0
+		b.chamine = dados[3]
+		b.add_child(f)
+		b.fumaca = f
+	var l := PointLight2D.new()
+	l.texture = tex_luz
+	l.texture_scale = 1.0 / dados[0] * 0.9
+	l.color = Color(1.0, 0.72, 0.38)
+	l.position = Vector2(dados[4].x * (-1.0 if d < 0 else 1.0), dados[4].y)
+	b.add_child(l)
+	b.luz = l
+	b.saiu.connect(func(): barcos.erase(b))
+	atores.add_child(b)
+	barcos.append(b)
 
 func veiculo_em(p: Vector2, margem := 0.0) -> bool:
 	for w in veiculos:
@@ -631,6 +693,12 @@ func _process(dt: float) -> void:
 		prox_veic = randf_range(4.0, 9.0)
 		if veiculos.size() < int(c["max_v"]):
 			_novo_veiculo()
+	if c.has("rio"):
+		prox_barco -= dt
+		if prox_barco <= 0.0:
+			prox_barco = randf_range(8.0, 18.0)
+			if barcos.size() < 2:
+				_novo_barco()
 
 func _mover_holmes(dt: float) -> void:
 	andando = false
@@ -703,6 +771,10 @@ func _tempo(dt: float) -> void:
 				tremor = 0.95 + 0.05 * sin(t * 2.1 + l[3])
 				e = 0.2 + 0.8 * noite
 		luz.energy = l[1] * e * tremor
+	# a fumaça clareia à noite para não virar mancha escura contra a pedra iluminada
+	var clarear := Color(1, 1, 1).lerp(Color(2.4, 2.25, 2.0), noite)
+	for f in get_tree().get_nodes_in_group("fumaca"):
+		f.modulate = clarear
 	var hh := int(hora)
 	var mm := int((hora - hh) * 60.0)
 	relogio.text = "%02d:%02d · %s" % [hh, mm, "noite" if noite > 0.5 else "entardecer"]
