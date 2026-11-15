@@ -48,6 +48,8 @@ func frente() -> Rect2:
 	if de_lado:
 		var x := c.end.x if dir.x > 0 else c.position.x - a
 		return Rect2(x, position.y - 75.0 * esc, a, 105.0 * esc)
+	if dir.y < 0:
+		return Rect2(position.x - 70.0 * esc, c.position.y - a, 140.0 * esc, a)
 	return Rect2(position.x - 70.0 * esc, c.end.y, 140.0 * esc, a)
 
 func _process(dt: float) -> void:

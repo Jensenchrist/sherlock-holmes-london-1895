@@ -49,8 +49,9 @@ const CENAS := {
 			{"de": Vector2(-220, 775), "dir": Vector2(1, 0), "lado": true},
 			{"de": Vector2(1292, 875), "dir": Vector2(-1, 0), "lado": true},
 			{"de": Vector2(600, -260), "dir": Vector2(0, 1), "lado": false},
+			{"de": Vector2(495, 1700), "dir": Vector2(0, -1), "lado": false},
 		],
-		"esc_v": 0.85, "vel_v": 85.0, "max_v": 2,
+		"esc_v": 0.85, "vel_v": 85.0, "max_v": 3,
 		"cruz": Rect2(440, 660, 220, 240),
 		"fixos": [["jornaleiro", Vector2(700, 1225), "esquerda"], ["cavalheiro", Vector2(800, 560), "esquerda"]],
 		# luzes: posição, raio, tipo
@@ -96,6 +97,7 @@ const CENAS := {
 			{"de": Vector2(-200, 615), "dir": Vector2(1, 0), "lado": true},
 			{"de": Vector2(1080, 680), "dir": Vector2(-1, 0), "lado": true},
 			{"de": Vector2(495, -250), "dir": Vector2(0, 1), "lado": false},
+			{"de": Vector2(415, 1380), "dir": Vector2(0, -1), "lado": false},
 		],
 		"esc_v": 0.65, "vel_v": 65.0, "max_v": 2,
 		"cruz": Rect2(370, 540, 170, 150),
@@ -205,7 +207,8 @@ func _ready() -> void:
 	for t in ["cavalheiro", "dama", "senhora", "guarda", "jornaleiro", "carregador"]:
 		tex_ped[t] = load("res://arte/pessoas/%s.png" % t)
 	for v in VEICULOS:
-		tex_veic[v] = [load("res://arte/veiculos/%s_lado.png" % v), load("res://arte/veiculos/%s_frente.png" % v)]
+		tex_veic[v] = [load("res://arte/veiculos/%s_lado.png" % v), load("res://arte/veiculos/%s_frente.png" % v),
+			load("res://arte/veiculos/%s_sobe.png" % v)]
 	tex_luz = _textura_radial(256, [0.0, 0.35, 1.0], [Color(1, 1, 1, 1), Color(1, 1, 1, 0.45), Color(1, 1, 1, 0)])
 	tex_fumaca = _textura_radial(64, [0.0, 0.5, 1.0], [Color(1, 1, 1, 0.9), Color(1, 1, 1, 0.35), Color(1, 1, 1, 0)])
 
@@ -500,11 +503,14 @@ func _novo_veiculo(no_meio := false) -> void:
 	var v := Sprite2D.new()
 	v.set_script(VEICULO)
 	v.main = self
-	var tex: Texture2D = tex_veic[tipo][0 if f["lado"] else 1]
+	var d: Vector2 = f["dir"]
+	var tex: Texture2D = tex_veic[tipo][0 if f["lado"] else (2 if d.y < 0 else 1)]
 	v.iniciar(tex, f["lado"], f["dir"], esc, float(c["vel_v"]) * VEICULOS[tipo][1], VEICULOS[tipo][0])
 	v.position = inicio
-	var d: Vector2 = f["dir"]
-	v.fim = (tam.x + 260.0 if d.x > 0 else 260.0) if f["lado"] else tam.y + 320.0
+	if f["lado"]:
+		v.fim = tam.x + 260.0 if d.x > 0 else 260.0
+	else:
+		v.fim = tam.y + 320.0 if d.y > 0 else 340.0
 	if tipo.begins_with("cab"):
 		var l := PointLight2D.new()
 		l.texture = tex_luz
